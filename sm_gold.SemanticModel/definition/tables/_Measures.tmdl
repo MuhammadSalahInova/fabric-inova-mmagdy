@@ -1,0 +1,820 @@
+table _Measures
+	isHidden
+	lineageTag: 16d770d7-b026-4a8e-9a13-fe3c1ec75e6d
+
+	measure 'Total Sales' = SUMX(Sales, Sales[Quantity] * Sales[UnitPrice] * (1 - Sales[Discount]))
+		formatString: \$#,0.###############;(\$#,0.###############);\$#,0.###############
+		lineageTag: 10c81b32-4895-4c4e-aa42-1971a9c737de
+
+		annotation PBI_FormatHint = {"currencyCulture":"en-US"}
+
+	measure 'Total Orders' = DISTINCTCOUNT(Sales[OrderID])
+		formatString: 0
+		lineageTag: 32e77b61-1a7c-4926-80fa-7a7b4d7fde50
+
+	measure 'Total Quantity' = SUM(Sales[Quantity])
+		formatString: 0
+		lineageTag: 9eaf5351-a35f-4806-a5db-4d9128cb94b1
+
+	measure 'Avg Order Value' = DIVIDE([Total Sales], [Total Orders])
+		formatString: \$#,0.###############;(\$#,0.###############);\$#,0.###############
+		lineageTag: 6bc745a1-d256-4923-a440-1af13545cef0
+
+		annotation PBI_FormatHint = {"currencyCulture":"en-US"}
+
+	measure 'Total Customers' = DISTINCTCOUNT(DimCustomers[CustomerKey])
+		formatString: 0
+		lineageTag: c55b7884-51d8-4638-be07-d5aa37557341
+
+	measure 'Total Products Sold' = DISTINCTCOUNT(Sales[ProductID])
+		formatString: 0
+		lineageTag: 93508ded-53f0-4a4c-ba66-89b8f3cf7efe
+
+	measure 'Total Freight' = SUM(Sales[Freight])
+		formatString: \$#,0.###############;(\$#,0.###############);\$#,0.###############
+		lineageTag: b542ad21-e4de-44bd-9641-c5a81e3907e2
+
+		annotation PBI_FormatHint = {"currencyCulture":"en-US"}
+
+	measure 'Sales LY' = CALCULATE([Total Sales], SAMEPERIODLASTYEAR(DimDate[FullDate]))
+		formatString: \$#,0.###############;(\$#,0.###############);\$#,0.###############
+		lineageTag: 728246cd-076b-4ee4-aa61-c15c57b36028
+
+		annotation PBI_FormatHint = {"currencyCulture":"en-US"}
+
+	measure 'Sales YoY %' = DIVIDE([Total Sales] - [Sales LY], [Sales LY])
+		formatString: 0.00%;-0.00%;0.00%
+		lineageTag: b86324d0-ae1a-4cc8-9998-56bbc3172203
+
+	measure 'Sales YTD' = TOTALYTD([Total Sales], DimDate[FullDate])
+		formatString: \$#,0.###############;(\$#,0.###############);\$#,0.###############
+		lineageTag: 2c6503c6-af9b-468d-b306-1d6f18996131
+
+		annotation PBI_FormatHint = {"currencyCulture":"en-US"}
+
+	measure 'Best Year Sales' =
+			
+			VAR YearSales =
+			    ADDCOLUMNS(
+			        ALL('DimDate'[Year]),
+			        "@Sales", CALCULATE([Total Sales])
+			    )
+			VAR BestYear =
+			    TOPN(
+			        1,
+			        YearSales,
+			        [@Sales], DESC
+			    )
+			RETURN
+			    MAXX(BestYear, [@Sales])
+		formatString: 0
+		lineageTag: da82f389-d616-4390-a50a-5b661e498a5a
+
+	measure 'Best Sales Year' =
+			
+			VAR YearSales =
+			    ADDCOLUMNS(
+			        ALL('DimDate'[Year]),
+			        "@Sales", CALCULATE([Total Sales])
+			    )
+			VAR BestYear =
+			    TOPN(
+			        1,
+			        YearSales,
+			        [@Sales], DESC
+			    )
+			RETURN
+			    FORMAT(
+			        MAXX(BestYear, 'DimDate'[Year]),
+			        "0"
+			    )
+		lineageTag: 23d9d6fe-237a-44b3-b837-95fcd697114f
+
+	measure 'Top Sales Category' =
+			
+			VAR CategorySales =
+			    ADDCOLUMNS(
+			        ALL('DimCategories'[CategoryName]),
+			        "@Sales", CALCULATE([Total Sales])
+			    )
+			VAR TopCategory =
+			    TOPN(
+			        1,
+			        CategorySales,
+			        [@Sales], DESC
+			    )
+			RETURN
+			    MAXX(
+			        TopCategory,
+			        'DimCategories'[CategoryName]
+			    )
+		lineageTag: 61b018f8-001f-4d0a-8bce-8bb0ba5836c3
+
+	measure 'Top Category Sales' =
+			
+			VAR CategorySales =
+			    ADDCOLUMNS(
+			        ALL('DimCategories'[CategoryName]),
+			        "@Sales", CALCULATE([Total Sales])
+			    )
+			VAR TopCategory =
+			    TOPN(
+			        1,
+			        CategorySales,
+			        [@Sales], DESC
+			    )
+			RETURN
+			    MAXX(TopCategory, [@Sales])
+		lineageTag: 0064a717-3646-4c07-8a95-060d4fec45e8
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Peak Sales Month' =
+			
+			VAR MonthSales =
+			    ADDCOLUMNS(
+			        ALL('DimDate'[MonthName]),
+			        "@Sales", CALCULATE([Total Sales])
+			    )
+			VAR PeakMonth =
+			    TOPN(
+			        1,
+			        MonthSales,
+			        [@Sales], DESC
+			    )
+			RETURN
+			    MAXX(
+			        PeakMonth,
+			        'DimDate'[MonthName]
+			    )
+		lineageTag: e812efc9-cdb3-4798-8917-e6a0b31d109e
+
+	measure 'Peak Month Sales' =
+			
+			VAR MonthSales =
+			    ADDCOLUMNS(
+			        ALL('DimDate'[MonthName]),
+			        "@Sales", CALCULATE([Total Sales])
+			    )
+			VAR PeakMonth =
+			    TOPN(
+			        1,
+			        MonthSales,
+			        [@Sales], DESC
+			    )
+			RETURN
+			    MAXX(PeakMonth, [@Sales])
+		lineageTag: e3d18dab-46bb-4e88-85ab-044e5175ed73
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Top10 Customers Sales' =
+			
+			CALCULATE(
+			    [Total Sales],
+			    TOPN(10, ALL(DimCustomers), [Total Sales])
+			)
+		lineageTag: 8fc20b20-c437-4db0-8c29-73f3ca5e7d52
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Top10 % of Sales' = DIVIDE([Top10 Customers Sales], [Total Sales])
+		lineageTag: 2ad89642-1545-4c5c-83f0-13c971f7a5c9
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Active Customers' = DISTINCTCOUNT(Sales[CustomerKey])
+		formatString: 0
+		lineageTag: 6157dd1b-cd35-43f8-b1a5-e09ed32e96c3
+
+	measure 'On-Time Delivery Rate %' =
+			
+			VAR TotalShippedOrders =
+			    CALCULATE(
+			        DISTINCTCOUNT(Sales[OrderID]),
+			        Sales[ShippedDate] <> BLANK(),
+			        Sales[RequiredDate] <> BLANK()
+			    )
+			VAR OnTimeOrders =
+			    CALCULATE(
+			        DISTINCTCOUNT(Sales[OrderID]),
+			        Sales[OnTimeFlag] = 1
+			    )
+			RETURN
+			    DIVIDE(
+			        OnTimeOrders,
+			        TotalShippedOrders,
+			        0
+			    )
+		lineageTag: 75b5cee4-c4fc-4c62-a934-80413d8986dc
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Unshipped Orders' =
+			
+			CALCULATE(
+			    DISTINCTCOUNT(Sales[OrderID]),
+			    Sales[ShippedDate] = BLANK()
+			)
+		formatString: 0
+		lineageTag: 60d24e18-4cd9-4882-81a5-538dcd663f6e
+
+	measure 'Avg Delivery Days' =
+			
+			AVERAGEX(
+			    VALUES(Sales[OrderID]),
+			    CALCULATE(
+			        MAX(Sales[DeliveryDays])
+			    )
+			)
+		lineageTag: b0621b3d-aa5d-4318-a80b-bf6c4e2d8795
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Needs Reorder' = IF ( SUM(DimProducts[UnitsInStock]) < SUM(DimProducts[ReorderLevel]), 1, 0 )
+		formatString: 0
+		lineageTag: a1b2c30b-7a18-4f99-af90-b58954f208be
+
+	measure 'Growth Recommendation' =
+			
+			VAR PeakYear = CALCULATE(SELECTEDVALUE(DimDate[Year]), TOPN(1, VALUES(DimDate[Year]), CALCULATE(SUM(Sales[LineTotal])), DESC))
+			VAR PeakSales = CALCULATE(SUM(Sales[LineTotal]), DimDate[Year] = PeakYear)
+			VAR PrevSales = CALCULATE(SUM(Sales[LineTotal]), DimDate[Year] = PeakYear - 1)
+			VAR NextSales = CALCULATE(SUM(Sales[LineTotal]), DimDate[Year] = PeakYear + 1)
+			VAR GrowthBefore = DIVIDE(PeakSales - PrevSales, PrevSales)
+			VAR ChangeAfter = DIVIDE(NextSales - PeakSales, PeakSales)
+			RETURN
+			    "Sales grew " & FORMAT(GrowthBefore, "0%") & " into " & PeakYear &
+			    ", then " & IF(ChangeAfter < 0, "fell " & FORMAT(ABS(ChangeAfter), "0%"), "kept rising " & FORMAT(ChangeAfter, "0%")) &
+			    " the year after. Prioritize retention for customers acquired in " & PeakYear & " to protect against the post-peak drop."
+		lineageTag: bf3e99e7-11a3-4738-b807-13a2ae1ba83b
+
+	measure 'Operations Recommendation' =
+			
+			VAR AvgDelivery = AVERAGE(Sales[DeliveryDays])
+			VAR OnTimeRate = AVERAGE(Sales[OnTimeFlag])
+			VAR SlowestShipper = CALCULATE(SELECTEDVALUE(DimShippers[CompanyName]), TOPN(1, VALUES(DimShippers[CompanyName]), CALCULATE(AVERAGE(Sales[DeliveryDays])), DESC))
+			RETURN
+			    "Average delivery is " & FORMAT(AvgDelivery, "0.0") & " days at a " & FORMAT(OnTimeRate, "0%") & " on-time rate. " &
+			    SlowestShipper & " runs slowest — renegotiate their SLA or shift volume to a faster carrier."
+		lineageTag: 9a935a00-6d03-4140-a463-db51b0917a5b
+
+	measure 'Buying Recommendation' =
+			
+			VAR TopCustomer = CALCULATE(SELECTEDVALUE(DimCustomers[CompanyName]), TOPN(1, VALUES(DimCustomers[CompanyName]), CALCULATE(SUM(Sales[LineTotal])), DESC))
+			VAR Concentration = DIVIDE(CALCULATE(SUM(Sales[LineTotal]), DimCustomers[CompanyName] = TopCustomer), SUM(Sales[LineTotal]))
+			RETURN
+			    TopCustomer & " drives " & FORMAT(Concentration, "0.0%") & " of total revenue. " &
+			    IF(Concentration > 0.1, "That's a retention risk — build a dedicated account plan and diversify acquisition.", "Revenue is healthily diversified — keep prioritizing broad acquisition.")
+		lineageTag: 48606bf0-07cb-4f0f-8370-bcdeb3fd1b90
+
+	measure 'Selling Recommendation' =
+			
+			VAR TopCat = CALCULATE(SELECTEDVALUE(DimCategories[CategoryName]), TOPN(1, VALUES(DimCategories[CategoryName]), CALCULATE(SUM(Sales[LineTotal])), DESC))
+			VAR BottomCat = CALCULATE(SELECTEDVALUE(DimCategories[CategoryName]), TOPN(1, VALUES(DimCategories[CategoryName]), CALCULATE(SUM(Sales[LineTotal])), ASC))
+			RETURN
+			    TopCat & " leads sales; " & BottomCat & " lags furthest behind. Bundle " & BottomCat & " with " & TopCat &
+			    " in promotions, or reassess whether it's worth the catalog space."
+		lineageTag: ddc71d66-7e4b-452f-b764-621632373049
+
+	measure 'Glance Recommendation' =
+			
+			VAR ThisYear = MAX(DimDate[Year])
+			VAR YoY = DIVIDE(CALCULATE(SUM(Sales[LineTotal]), DimDate[Year] = ThisYear) - CALCULATE(SUM(Sales[LineTotal]), DimDate[Year] = ThisYear - 1), CALCULATE(SUM(Sales[LineTotal]), DimDate[Year] = ThisYear - 1))
+			RETURN
+			    "Overall performance is " & IF(YoY >= 0, "up " & FORMAT(YoY, "0%"), "down " & FORMAT(ABS(YoY), "0%")) & " year-over-year. " &
+			    IF(YoY >= 0, "Double down on this year's top category and channel.", "Investigate what drove the decline before setting next quarter's budget.")
+		lineageTag: 8f659400-9539-4c13-86c2-ea5977adfe02
+
+	measure 'Seasonality Insight' =
+			
+			VAR PeakMonth = CALCULATE(SELECTEDVALUE(DimDate[MonthName]), TOPN(1, VALUES(DimDate[MonthName]), CALCULATE(SUM(Sales[LineTotal])), DESC))
+			RETURN PeakMonth & " is consistently your strongest sales month."
+		lineageTag: 34a4230f-e9be-40f8-ba62-d992366b970a
+
+	measure 'Seasonality Recommendation' =
+			
+			VAR PeakMonth = CALCULATE(SELECTEDVALUE(DimDate[MonthName]), TOPN(1, VALUES(DimDate[MonthName]), CALCULATE(SUM(Sales[LineTotal])), DESC))
+			RETURN "Build up inventory and staffing ahead of " & PeakMonth & ", and test a promotion in your weakest month to smooth the seasonal gap."
+		lineageTag: 5fbdd4a1-ca26-4c5e-a68e-4692c8c9aaa9
+
+	measure 'Inventory Insight' =
+			
+			VAR LowStock = CALCULATE(COUNTROWS(DimProducts), DimProducts[UnitsInStock] < DimProducts[ReorderLevel])
+			RETURN LowStock & " product(s) are currently below their reorder level."
+		lineageTag: 2ed1624f-42fe-49db-9adb-d02cedf39f47
+
+	measure 'Inventory Recommendation' =
+			
+			VAR LowStock = CALCULATE(COUNTROWS(DimProducts), DimProducts[UnitsInStock] < DimProducts[ReorderLevel])
+			RETURN IF(LowStock > 0, "Reorder now to avoid stockouts — check DimProducts for the exact list.", "All products are stocked above threshold — no action needed.")
+		lineageTag: 914328c8-2374-46b8-8686-6dc631833b08
+
+	measure 'Selected Product Name' = SELECTEDVALUE(DimProducts[ProductName], "Multiple Products")
+		lineageTag: 60bc3379-d09d-47ef-9e8d-e27b5290e3ab
+
+	measure 'Selected Category' =
+			
+			LOOKUPVALUE(
+			    DimCategories[CategoryName],
+			    DimCategories[CategoryKey], SELECTEDVALUE(DimProducts[CategoryKey])
+			)
+		lineageTag: 638f5068-477f-4fd6-a474-92e1f7333772
+
+	measure 'Selected Supplier' =
+			
+			LOOKUPVALUE(
+			    DimSuppliers[CompanyName],
+			    DimSuppliers[SupplierKey], SELECTEDVALUE(DimProducts[SupplierKey])
+			)
+		lineageTag: 58223e23-14cb-43e6-a4ce-a20c777faf4b
+
+	measure 'Selected Unit Price' = SELECTEDVALUE(DimProducts[UnitPrice])
+		lineageTag: 082b7a76-873f-4b3a-a7d3-b7dda8e25036
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Selected Units In Stock' = SELECTEDVALUE(DimProducts[UnitsInStock])
+		formatString: 0
+		lineageTag: 4c4af26d-dd71-4047-a9d6-0c4d647e7bfe
+
+	measure 'Selected Reorder Level' = ```
+			SELECTEDVALUE(DimProducts[ReorderLevel])
+			
+			```
+		formatString: 0
+		lineageTag: 2894e8f8-529b-48bf-a114-be838aa1493e
+
+	measure 'Product Quantity Sold' = ```
+			SUM(Sales[Quantity])
+			
+			```
+		formatString: 0
+		lineageTag: e717df3b-160e-4bd8-b998-81b6ef1d357f
+
+	measure 'Needs Reorder Flag' =
+			
+			IF(
+			    SELECTEDVALUE(DimProducts[UnitsInStock]) < SELECTEDVALUE(DimProducts[ReorderLevel]),
+			    "⚠ Reorder Needed",
+			    "✅ Stock OK"
+			)
+		lineageTag: 1170b021-c38c-4b52-ad6b-fbc960aabd8b
+
+	measure 'Category Share %' =
+			
+			DIVIDE([Total Sales], CALCULATE([Total Sales], ALL(DimCategories)))
+		lineageTag: 61b654e3-a210-46e7-a817-786879751d97
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Category Rank' =
+			
+			RANKX(ALL(DimCategories[CategoryName]), [Total Sales])
+		formatString: 0
+		lineageTag: 38910d87-3bdf-4749-aa5d-8c9bcf487d34
+
+	measure 'Category Top Product' =
+			
+			VAR TopProdRow =
+			    TOPN(1, SUMMARIZE(Sales, DimProducts[ProductName], "Rev", [Total Sales]), [Rev], DESC)
+			RETURN
+			MAXX(TopProdRow, DimProducts[ProductName])
+		lineageTag: 5fa074c6-c469-435a-adb9-e662b5f0606a
+
+	measure 'Total Sales Card HTML' = ```
+			
+			VAR TotalSales = FORMAT(SUM(Sales[LineTotal]), "$#,##0")
+			VAR TopCategory = 
+			    CALCULATE(
+			        SELECTEDVALUE(DimCategories[CategoryName]),
+			        TOPN(1, VALUES(DimCategories[CategoryName]), CALCULATE(SUM(Sales[LineTotal])), DESC)
+			    )
+			RETURN
+			"<style>
+			.card { position: relative; width: 325px; height: 240px; background-color: #000;
+			  display: flex; flex-direction: column; justify-content: end; padding: 18px; gap: 8px;
+			  border-radius: 12px; cursor: pointer; color: #fff; font-family: Segoe UI, sans-serif; margin: 12px; }
+			.card::before { content: ''; position: absolute; inset: 0; left: -7px; margin: auto;
+			  width: 341px; height: 256px; border-radius: 15px;
+			  background: linear-gradient(-45deg, #e81cff 0%, #40c9ff 100%); z-index: -10; pointer-events: none;
+			  transition: all 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+			.card::after { content: ''; z-index: -1; position: absolute; inset: 0;
+			  background: linear-gradient(-45deg, #fc00ff 0%, #00dbde 100%);
+			  transform: translate3d(0, 0, 0) scale(0.95); filter: blur(26px); }
+			.heading { font-size: 22px; text-transform: capitalize; font-weight: 700; margin: 0; }
+			.value { font-size: 38px; font-weight: 700; margin: 0; line-height: 1.1; }
+			.card p:not(.heading):not(.value) { font-size: 15px; margin: 0; }
+			.card p:last-child { color: #e81cff; font-weight: 600; }
+			.card:hover::after { filter: blur(38px); }
+			.card:hover::before { transform: rotate(-90deg) scaleX(1.34) scaleY(0.77); }
+			</style>
+			<div class='card'>
+			  <p class='heading'>Total Sales</p>
+			  <p class='value'>" & TotalSales & "</p>
+			  <p>Leading Category</p>
+			  <p>" & TopCategory & "</p>
+			</div>"
+			```
+		lineageTag: 29e5286d-d211-44e9-af5e-01aaa6ded0f5
+
+	measure 'Total Orders Card HTML' = ```
+			
+			VAR TotalOrders = FORMAT(DISTINCTCOUNT(Sales[OrderID]), "#,##0")
+			VAR MostOrdered = 
+			    CALCULATE(
+			        SELECTEDVALUE(DimProducts[ProductName]),
+			        TOPN(1, VALUES(DimProducts[ProductName]), CALCULATE(SUM(Sales[Quantity])), DESC)
+			    )
+			RETURN
+			"<style>
+			.card { position: relative; width: 325px; height: 240px; background-color: #000;
+			  display: flex; flex-direction: column; justify-content: end; padding: 18px; gap: 8px;
+			  border-radius: 12px; cursor: pointer; color: #fff; font-family: Segoe UI, sans-serif; margin: 12px; }
+			.card::before { content: ''; position: absolute; inset: 0; left: -7px; margin: auto;
+			  width: 341px; height: 256px; border-radius: 15px;
+			  background: linear-gradient(-45deg, #1c6fff 0%, #40e0ff 100%); z-index: -10; pointer-events: none;
+			  transition: all 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+			.card::after { content: ''; z-index: -1; position: absolute; inset: 0;
+			  background: linear-gradient(-45deg, #0066ff 0%, #00dbde 100%);
+			  transform: translate3d(0, 0, 0) scale(0.95); filter: blur(26px); }
+			.heading { font-size: 22px; text-transform: capitalize; font-weight: 700; margin: 0; }
+			.value { font-size: 38px; font-weight: 700; margin: 0; line-height: 1.1; }
+			.card p:not(.heading):not(.value) { font-size: 15px; margin: 0; }
+			.card p:last-child { color: #40c9ff; font-weight: 600; }
+			.card:hover::after { filter: blur(38px); }
+			.card:hover::before { transform: rotate(-90deg) scaleX(1.34) scaleY(0.77); }
+			</style>
+			<div class='card'>
+			  <p class='heading'>Total Orders</p>
+			  <p class='value'>" & TotalOrders & "</p>
+			  <p>Most Ordered Product</p>
+			  <p>" & MostOrdered & "</p>
+			</div>"
+			```
+		lineageTag: 6a578b2f-05ae-40ee-8632-d1b54b3b6821
+
+	measure 'Active Customers Card HTML' = ```
+			
+			VAR ActiveCustomers = FORMAT(DISTINCTCOUNT(Sales[CustomerKey]), "#,##0")
+			VAR TopYear = 
+			    CALCULATE(
+			        SELECTEDVALUE(DimDate[Year]),
+			        TOPN(1, VALUES(DimDate[Year]), CALCULATE(DISTINCTCOUNT(Sales[CustomerKey])), DESC)
+			    )
+			RETURN
+			"<style>
+			.card { position: relative; width: 325px; height: 240px; background-color: #000;
+			  display: flex; flex-direction: column; justify-content: end; padding: 18px; gap: 8px;
+			  border-radius: 12px; cursor: pointer; color: #fff; font-family: Segoe UI, sans-serif; margin: 12px; }
+			.card::before { content: ''; position: absolute; inset: 0; left: -7px; margin: auto;
+			  width: 341px; height: 256px; border-radius: 15px;
+			  background: linear-gradient(-45deg, #00c853 0%, #7bff8a 100%); z-index: -10; pointer-events: none;
+			  transition: all 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+			.card::after { content: ''; z-index: -1; position: absolute; inset: 0;
+			  background: linear-gradient(-45deg, #00ff88 0%, #14b8a6 100%);
+			  transform: translate3d(0, 0, 0) scale(0.95); filter: blur(26px); }
+			.heading { font-size: 22px; text-transform: capitalize; font-weight: 700; margin: 0; }
+			.value { font-size: 38px; font-weight: 700; margin: 0; line-height: 1.1; }
+			.card p:not(.heading):not(.value) { font-size: 15px; margin: 0; }
+			.card p:last-child { color: #00e676; font-weight: 600; }
+			.card:hover::after { filter: blur(38px); }
+			.card:hover::before { transform: rotate(-90deg) scaleX(1.34) scaleY(0.77); }
+			</style>
+			<div class='card'>
+			  <p class='heading'>Active Customers</p>
+			  <p class='value'>" & ActiveCustomers & "</p>
+			  <p>Peak Year</p>
+			  <p>" & TopYear & "</p>
+			</div>"
+			```
+		lineageTag: b50aa9dc-4d16-46ea-9a37-af2a852ae00c
+
+	measure 'Avg Order Value Card HTML' = ```
+			
+			VAR AvgOrderValue = FORMAT(DIVIDE(SUM(Sales[LineTotal]), DISTINCTCOUNT(Sales[OrderID])), "$#,##0")
+			VAR TopCountry = 
+			    CALCULATE(
+			        SELECTEDVALUE(Sales[ShipCountry]),
+			        TOPN(1, VALUES(Sales[ShipCountry]), CALCULATE(DIVIDE(SUM(Sales[LineTotal]), DISTINCTCOUNT(Sales[OrderID]))), DESC)
+			    )
+			RETURN
+			"<style>
+			.card { position: relative; width: 325px; height: 240px; background-color: #000;
+			  display: flex; flex-direction: column; justify-content: end; padding: 18px; gap: 8px;
+			  border-radius: 12px; cursor: pointer; color: #fff; font-family: Segoe UI, sans-serif; margin: 12px; }
+			.card::before { content: ''; position: absolute; inset: 0; left: -7px; margin: auto;
+			  width: 341px; height: 256px; border-radius: 15px;
+			  background: linear-gradient(-45deg, #ff6b1c 0%, #ffc340 100%); z-index: -10; pointer-events: none;
+			  transition: all 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+			.card::after { content: ''; z-index: -1; position: absolute; inset: 0;
+			  background: linear-gradient(-45deg, #ff4500 0%, #ffb700 100%);
+			  transform: translate3d(0, 0, 0) scale(0.95); filter: blur(26px); }
+			.heading { font-size: 22px; text-transform: capitalize; font-weight: 700; margin: 0; }
+			.value { font-size: 38px; font-weight: 700; margin: 0; line-height: 1.1; }
+			.card p:not(.heading):not(.value) { font-size: 15px; margin: 0; }
+			.card p:last-child { color: #fb923c; font-weight: 600; }
+			.card:hover::after { filter: blur(38px); }
+			.card:hover::before { transform: rotate(-90deg) scaleX(1.34) scaleY(0.77); }
+			</style>
+			<div class='card'>
+			  <p class='heading'>Avg Order Value</p>
+			  <p class='value'>" & AvgOrderValue & "</p>
+			  <p>Highest AOV Country</p>
+			  <p>" & TopCountry & "</p>
+			</div>"
+			```
+		lineageTag: 7339f779-db40-4a47-85d3-dd69f384f864
+
+	measure 'Card Recommendations' = ```
+			
+			VAR Header =
+			"
+			<style>
+			.inventory-container {
+			    width: 100%;
+			    height: 100%;
+			    background: #111a2e;
+			    border-radius: 12px;
+			    padding: 18px;
+			    box-sizing: border-box;
+			    font-family: Arial, sans-serif;
+			    color: white;
+			    overflow: auto;
+			}
+			
+			.inventory-title {
+			    text-align: center;
+			    font-size: 20px;
+			    font-weight: 700;
+			    color: white;
+			    margin-bottom: 15px;
+			}
+			
+			.inventory-table {
+			    width: 100%;
+			    border-collapse: collapse;
+			    font-size: 12px;
+			}
+			
+			.inventory-table th {
+			    background: #202c46;
+			    color: white;
+			    padding: 10px 8px;
+			    text-align: left;
+			    border-bottom: 2px solid #7b61ff;
+			}
+			
+			.inventory-table td {
+			    padding: 8px;
+			    border-bottom: 1px solid #303b55;
+			    color: #eeeeee;
+			}
+			
+			.inventory-table tr:hover {
+			    background: #202b45;
+			}
+			
+			.product {
+			    font-weight: 600;
+			    color: white;
+			}
+			
+			.number {
+			    text-align: center;
+			}
+			
+			.alert {
+			    color: #ff9f43;
+			    font-weight: 700;
+			    text-align: center;
+			}
+			</style>
+			
+			<div class='inventory-container'>
+			
+			<div class='inventory-title'>
+			Inventory Replenishment Alert
+			</div>
+			
+			<table class='inventory-table'>
+			
+			<tr>
+			<th>Product Name</th>
+			<th>Units In Stock</th>
+			<th>Reorder Level</th>
+			<th>Company Name</th>
+			<th>Needs Reorder</th>
+			</tr>
+			"
+			
+			VAR ProductTable =
+			    FILTER(
+			        SUMMARIZECOLUMNS(
+			            DimProducts[ProductName],
+			            DimProducts[UnitsInStock],
+			            DimProducts[ReorderLevel],
+			            DimSuppliers[CompanyName],
+			            "ReorderStatus", [Needs Reorder]
+			        ),
+			        [ReorderStatus] = 1
+			    )
+			
+			VAR HTMLRows =
+			    CONCATENATEX(
+			        ProductTable,
+			        
+			        VAR ProductName =
+			            DimProducts[ProductName]
+			
+			        VAR Stock =
+			            DimProducts[UnitsInStock]
+			
+			        VAR ReorderLevel =
+			            DimProducts[ReorderLevel]
+			
+			        VAR Supplier =
+			            DimSuppliers[CompanyName]
+			
+			        RETURN
+			            "<tr>
+			                <td class='product'>" & ProductName & "</td>
+			                <td class='number'>" & FORMAT(Stock, "0") & "</td>
+			                <td class='number'>" & FORMAT(ReorderLevel, "0") & "</td>
+			                <td>" & Supplier & "</td>
+			                <td class='alert'>" & UNICHAR(9888) & " 1</td>
+			            </tr>"
+			    )
+			
+			VAR Footer =
+			"
+			</table>
+			</div>
+			"
+			
+			RETURN
+			    Header & HTMLRows & Footer
+			```
+		lineageTag: d846f2b8-0c9a-4c09-bb09-653d5834eb0e
+
+	measure 'Inventory Replenishment HTML' = ```
+			
+			VAR Header =
+			"
+			<style>
+			
+			.inventory-container {
+			    width: 100%;
+			    height: 100%;
+			    background: #111a2e;
+			    border-radius: 12px;
+			    padding: 18px;
+			    box-sizing: border-box;
+			    font-family: Arial, sans-serif;
+			    color: white;
+			    overflow: auto;
+			}
+			
+			.inventory-title {
+			    text-align: center;
+			    font-size: 20px;
+			    font-weight: 700;
+			    color: white;
+			    margin-bottom: 15px;
+			}
+			
+			.inventory-table {
+			    width: 100%;
+			    border-collapse: collapse;
+			    font-size: 12px;
+			}
+			
+			.inventory-table th {
+			    background: #202c46;
+			    color: #ffffff;
+			    padding: 10px 8px;
+			    text-align: left;
+			    border-bottom: 2px solid #7b61ff;
+			    position: sticky;
+			    top: 0;
+			}
+			
+			.inventory-table td {
+			    padding: 8px;
+			    border-bottom: 1px solid #303b55;
+			    color: #eeeeee;
+			}
+			
+			.inventory-table tr:hover {
+			    background: #202b45;
+			}
+			
+			.product {
+			    font-weight: 600;
+			    color: #ffffff;
+			}
+			
+			.number {
+			    text-align: center;
+			}
+			
+			.alert {
+			    color: #ff9f43;
+			    font-weight: 700;
+			    text-align: center;
+			}
+			
+			.good {
+			    color: #4cd97b;
+			    font-weight: 700;
+			    text-align: center;
+			}
+			
+			</style>
+			
+			<div class='inventory-container'>
+			
+			<div class='inventory-title'>
+			Inventory Replenishment Alert
+			</div>
+			
+			<table class='inventory-table'>
+			
+			<tr>
+			<th>Product Name</th>
+			<th>Units In Stock</th>
+			<th>Reorder Level</th>
+			<th>Company Name</th>
+			<th>Needs Reorder</th>
+			</tr>
+			"
+			
+			VAR Rows =
+			CONCATENATEX(
+			    FILTER(
+			        SUMMARIZECOLUMNS(
+			            DimProducts[ProductName],
+			            DimProducts[UnitsInStock],
+			            DimProducts[ReorderLevel],
+			            DimSuppliers[CompanyName],
+			            "ReorderStatus", [Needs Reorder]
+			        ),
+			        [ReorderStatus] = 1
+			    ),
+			    
+			    VAR ProductName =
+			        DimProducts[ProductName]
+			
+			    VAR Stock =
+			        DimProducts[UnitsInStock]
+			
+			    VAR ReorderLevel =
+			        DimProducts[ReorderLevel]
+			
+			    VAR Supplier =
+			        DimSuppliers[CompanyName]
+			
+			    VAR Status =
+			        [ReorderStatus]
+			
+			    RETURN
+			    "
+			    <tr>
+			        <td class='product'>" & ProductName & "</td>
+			        <td class='number'>" & FORMAT(Stock, "0") & "</td>
+			        <td class='number'>" & FORMAT(ReorderLevel, "0") & "</td>
+			        <td>" & Supplier & "</td>
+			        <td class='alert'>⚠ 1</td>
+			    </tr>
+			    ",
+			    
+			    ""
+			)
+			
+			VAR Footer =
+			"
+			</table>
+			</div>
+			"
+			
+			RETURN
+			Header & Rows & Footer
+			```
+		lineageTag: 99bb9729-5fbe-4a38-aaea-b904104b1563
+
+	column Value
+		isHidden
+		formatString: 0
+		lineageTag: 61466c46-81f8-4d7b-919d-a845382e972f
+		summarizeBy: sum
+		isNameInferred
+		sourceColumn: [Value]
+
+		annotation SummarizationSetBy = Automatic
+
+	partition _Measures = calculated
+		mode: import
+		source = {BLANK()}
+
+	annotation PBI_Id = ba55545379834d46955563de4ec27c60
+

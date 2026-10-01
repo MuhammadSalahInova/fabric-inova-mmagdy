@@ -1,0 +1,214 @@
+table DimEmployees
+	lineageTag: 8cc06581-9b27-4b35-8961-fe6f4178f291
+	sourceLineageTag: [dbo].[DimEmployees]
+
+	column EmployeeKey
+		dataType: int64
+		isHidden
+		formatString: 0
+		sourceProviderType: bigint
+		lineageTag: 0b82d054-f50a-4f01-85a4-033ed5738590
+		sourceLineageTag: EmployeeKey
+		summarizeBy: none
+		sourceColumn: EmployeeKey
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column Address
+		dataType: string
+		sourceProviderType: varchar(8000)
+		lineageTag: c2d2281b-d0f5-4803-8b27-472a0f388b46
+		sourceLineageTag: Address
+		summarizeBy: none
+		sourceColumn: Address
+
+		annotation SummarizationSetBy = Automatic
+
+	column BirthDate
+		dataType: dateTime
+		formatString: General Date
+		sourceProviderType: datetime2
+		lineageTag: 9f3b5da3-aa0e-432d-96d3-66be7d7b88b2
+		sourceLineageTag: BirthDate
+		summarizeBy: none
+		sourceColumn: BirthDate
+
+		annotation SummarizationSetBy = Automatic
+
+	column City
+		dataType: string
+		sourceProviderType: varchar(8000)
+		lineageTag: afb5c020-6a8d-4edd-9320-d09c61536ec7
+		sourceLineageTag: City
+		summarizeBy: none
+		sourceColumn: City
+
+		annotation SummarizationSetBy = Automatic
+
+	column Country
+		dataType: string
+		sourceProviderType: varchar(8000)
+		lineageTag: 7d2f40ed-2e70-4680-96fb-054038a6f0fb
+		sourceLineageTag: Country
+		summarizeBy: none
+		sourceColumn: Country
+
+		annotation SummarizationSetBy = Automatic
+
+	column EmployeeID
+		dataType: int64
+		formatString: 0
+		sourceProviderType: bigint
+		lineageTag: ba2ca04a-30e5-44bf-86f7-f4a5aefc5941
+		sourceLineageTag: EmployeeID
+		summarizeBy: none
+		sourceColumn: EmployeeID
+
+		annotation SummarizationSetBy = Automatic
+
+	column Extension
+		dataType: string
+		sourceProviderType: varchar(8000)
+		lineageTag: f4f5ead3-5e05-4412-aff2-745daa0be9dd
+		sourceLineageTag: Extension
+		summarizeBy: none
+		sourceColumn: Extension
+
+		annotation SummarizationSetBy = Automatic
+
+	column FirstName
+		dataType: string
+		sourceProviderType: varchar(8000)
+		lineageTag: 7b554865-21b9-49ae-bfc2-71716855911c
+		sourceLineageTag: FirstName
+		summarizeBy: none
+		sourceColumn: FirstName
+
+		annotation SummarizationSetBy = Automatic
+
+	column HireDate
+		dataType: dateTime
+		formatString: General Date
+		sourceProviderType: datetime2
+		lineageTag: eaf128c7-d4c5-4f93-80f0-fc3d4453a76d
+		sourceLineageTag: HireDate
+		summarizeBy: none
+		sourceColumn: HireDate
+
+		annotation SummarizationSetBy = Automatic
+
+	column HomePhone
+		dataType: string
+		sourceProviderType: varchar(8000)
+		lineageTag: 482f899c-710a-41ed-8feb-63d76fd6f44b
+		sourceLineageTag: HomePhone
+		summarizeBy: none
+		sourceColumn: HomePhone
+
+		annotation SummarizationSetBy = Automatic
+
+	column LastName
+		dataType: string
+		sourceProviderType: varchar(8000)
+		lineageTag: e618075a-dc35-4f6d-873c-a581abdc787e
+		sourceLineageTag: LastName
+		summarizeBy: none
+		sourceColumn: LastName
+
+		annotation SummarizationSetBy = Automatic
+
+	column PostalCode
+		dataType: string
+		isHidden
+		sourceProviderType: varchar(8000)
+		lineageTag: 273bb827-f601-44bb-9261-8c6b00809b81
+		sourceLineageTag: PostalCode
+		summarizeBy: none
+		sourceColumn: PostalCode
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column Region
+		dataType: string
+		sourceProviderType: varchar(8000)
+		lineageTag: 62532fe5-38d2-489c-bf3f-82fc34859818
+		sourceLineageTag: Region
+		summarizeBy: none
+		sourceColumn: Region
+
+		annotation SummarizationSetBy = Automatic
+
+	column Title
+		dataType: string
+		sourceProviderType: varchar(8000)
+		lineageTag: e225b4c1-159d-4353-acc4-5182d4c9eecb
+		sourceLineageTag: Title
+		summarizeBy: none
+		sourceColumn: Title
+
+		annotation SummarizationSetBy = Automatic
+
+	column TitleOfCourtesy
+		dataType: string
+		sourceProviderType: varchar(8000)
+		lineageTag: 0eb0e28e-4586-4e82-b4e4-d1ca44ed4961
+		sourceLineageTag: TitleOfCourtesy
+		summarizeBy: none
+		sourceColumn: TitleOfCourtesy
+
+		annotation SummarizationSetBy = Automatic
+
+	column Photo
+		dataType: string
+		sourceProviderType: varchar(8000)
+		lineageTag: 66db72a9-40fc-49cd-b978-25050f66cf2e
+		sourceLineageTag: Photo
+		summarizeBy: none
+		sourceColumn: Photo
+
+		annotation SummarizationSetBy = Automatic
+
+	column Notes
+		dataType: string
+		sourceProviderType: varchar(8000)
+		lineageTag: 5c5b501d-764e-466f-8c2b-3842c00753ec
+		sourceLineageTag: Notes
+		summarizeBy: none
+		sourceColumn: Notes
+
+		annotation SummarizationSetBy = Automatic
+
+	column ReportsTo
+		dataType: int64
+		formatString: 0
+		sourceProviderType: bigint
+		lineageTag: a343bf83-7e47-432a-a5bf-03fd880b337d
+		sourceLineageTag: ReportsTo
+		summarizeBy: none
+		sourceColumn: ReportsTo
+
+		annotation SummarizationSetBy = Automatic
+
+	column PhotoPath
+		dataType: string
+		sourceProviderType: varchar(8000)
+		lineageTag: ab943dfc-d051-47a7-9773-27fa3f90fcfa
+		sourceLineageTag: PhotoPath
+		summarizeBy: none
+		sourceColumn: PhotoPath
+
+		annotation SummarizationSetBy = Automatic
+
+	partition DimEmployees = entity
+		mode: directLake
+		source
+			entityName: DimEmployees
+			schemaName: dbo
+			expressionSource: DatabaseQuery
+
+	annotation PBI_ResultType = Table
+

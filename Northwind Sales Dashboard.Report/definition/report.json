@@ -1,0 +1,253 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/report/3.3.0/schema.json",
+  "themeCollection": {
+    "baseTheme": {
+      "name": "Fluent2-CY26SU08",
+      "reportVersionAtImport": {
+        "visual": "2.12.0",
+        "report": "3.4.0",
+        "page": "2.3.1"
+      },
+      "type": "SharedResources"
+    },
+    "customTheme": {
+      "name": "Northwind_Dark_Dashboard9654897356149769.json",
+      "reportVersionAtImport": {
+        "visual": "2.13.0",
+        "report": "3.4.0",
+        "page": "2.3.1"
+      },
+      "type": "RegisteredResources"
+    }
+  },
+  "objects": {
+    "section": [
+      {
+        "properties": {
+          "verticalAlignment": {
+            "expr": {
+              "Literal": {
+                "Value": "'Top'"
+              }
+            }
+          }
+        }
+      }
+    ],
+    "outspacePane": [
+      {
+        "properties": {
+          "expanded": {
+            "expr": {
+              "Literal": {
+                "Value": "true"
+              }
+            }
+          }
+        }
+      }
+    ]
+  },
+  "reportSource": "QuickCreate",
+  "publicCustomVisuals": [
+    "htmlContent443BE3AD55E043BF878BED274D3A6855"
+  ],
+  "resourcePackages": [
+    {
+      "name": "SharedResources",
+      "type": "SharedResources",
+      "items": [
+        {
+          "name": "Fluent2-CY26SU08",
+          "path": "BaseThemes/Fluent2-CY26SU08.json",
+          "type": "BaseTheme"
+        }
+      ]
+    },
+    {
+      "name": "RegisteredResources",
+      "type": "RegisteredResources",
+      "items": [
+        {
+          "name": "94238-20017030225663219067.png",
+          "path": "94238-20017030225663219067.png",
+          "type": "Image"
+        },
+        {
+          "name": "concentration_card_icon26611962631567765.png",
+          "path": "concentration_card_icon26611962631567765.png",
+          "type": "Image"
+        },
+        {
+          "name": "customer_insights_title_icon8234108328668749.png",
+          "path": "customer_insights_title_icon8234108328668749.png",
+          "type": "Image"
+        },
+        {
+          "name": "gradientbar_blue_(1)25735767459491354.png",
+          "path": "gradientbar_blue_(1)25735767459491354.png",
+          "type": "Image"
+        },
+        {
+          "name": "gradientbar_green011958455315505767.png",
+          "path": "gradientbar_green011958455315505767.png",
+          "type": "Image"
+        },
+        {
+          "name": "gradientbar_orange9153655653259247.png",
+          "path": "gradientbar_orange9153655653259247.png",
+          "type": "Image"
+        },
+        {
+          "name": "gradientbar_purple8054011962762698.png",
+          "path": "gradientbar_purple8054011962762698.png",
+          "type": "Image"
+        },
+        {
+          "name": "icon_active_customers9069393023840483.png",
+          "path": "icon_active_customers9069393023840483.png",
+          "type": "Image"
+        },
+        {
+          "name": "icon_avg_order_value6169530456697254.png",
+          "path": "icon_avg_order_value6169530456697254.png",
+          "type": "Image"
+        },
+        {
+          "name": "icon_peak_month08991319226882133.png",
+          "path": "icon_peak_month08991319226882133.png",
+          "type": "Image"
+        },
+        {
+          "name": "icon_total_orders5532837930497434.png",
+          "path": "icon_total_orders5532837930497434.png",
+          "type": "Image"
+        },
+        {
+          "name": "icon_total_sales44052219138365667.png",
+          "path": "icon_total_sales44052219138365667.png",
+          "type": "Image"
+        },
+        {
+          "name": "icons8-best-seller-506296444000965956.png",
+          "path": "icons8-best-seller-506296444000965956.png",
+          "type": "Image"
+        },
+        {
+          "name": "icons8-category-504418977044979099.png",
+          "path": "icons8-category-504418977044979099.png",
+          "type": "Image"
+        },
+        {
+          "name": "icons8-clock-503102710219268402.png",
+          "path": "icons8-clock-503102710219268402.png",
+          "type": "Image"
+        },
+        {
+          "name": "icons8-delivery-time-504643114421583181.png",
+          "path": "icons8-delivery-time-504643114421583181.png",
+          "type": "Image"
+        },
+        {
+          "name": "icons8-dollar-coin-646448531913517945.png",
+          "path": "icons8-dollar-coin-646448531913517945.png",
+          "type": "Image"
+        },
+        {
+          "name": "icons8-employees-50814015013782392.png",
+          "path": "icons8-employees-50814015013782392.png",
+          "type": "Image"
+        },
+        {
+          "name": "icons8-exit-489546539665267555.png",
+          "path": "icons8-exit-489546539665267555.png",
+          "type": "Image"
+        },
+        {
+          "name": "icons8-filter-5006714042721820912.png",
+          "path": "icons8-filter-5006714042721820912.png",
+          "type": "Image"
+        },
+        {
+          "name": "icons8-idea-12821000809288671185.png",
+          "path": "icons8-idea-12821000809288671185.png",
+          "type": "Image"
+        },
+        {
+          "name": "icons8-ideas-644514445629030399.png",
+          "path": "icons8-ideas-644514445629030399.png",
+          "type": "Image"
+        },
+        {
+          "name": "icons8-package-50_(1)18978220280319447.png",
+          "path": "icons8-package-50_(1)18978220280319447.png",
+          "type": "Image"
+        },
+        {
+          "name": "icons8-sales-analysis-6629801425213797605.png",
+          "path": "icons8-sales-analysis-6629801425213797605.png",
+          "type": "Image"
+        },
+        {
+          "name": "icons8-sales-balance-509742939324510616.png",
+          "path": "icons8-sales-balance-509742939324510616.png",
+          "type": "Image"
+        },
+        {
+          "name": "icons8-shop-647410874885769672.png",
+          "path": "icons8-shop-647410874885769672.png",
+          "type": "Image"
+        },
+        {
+          "name": "icons8-supply-chain-646461836982600361.png",
+          "path": "icons8-supply-chain-646461836982600361.png",
+          "type": "Image"
+        },
+        {
+          "name": "Northwind_Dark_Dashboard9654897356149769.json",
+          "path": "Northwind_Dark_Dashboard9654897356149769.json",
+          "type": "CustomTheme"
+        },
+        {
+          "name": "Northwind_Dashboard_Background4875732790653775.png",
+          "path": "Northwind_Dashboard_Background4875732790653775.png",
+          "type": "Image"
+        },
+        {
+          "name": "Northwind_Dashboard_Background5071527543622942.png",
+          "path": "Northwind_Dashboard_Background5071527543622942.png",
+          "type": "Image"
+        },
+        {
+          "name": "Northwind_Dashboard_Background651330091538853.png",
+          "path": "Northwind_Dashboard_Background651330091538853.png",
+          "type": "Image"
+        },
+        {
+          "name": "Northwind_Dashboard_Background8932514160573373.png",
+          "path": "Northwind_Dashboard_Background8932514160573373.png",
+          "type": "Image"
+        },
+        {
+          "name": "Northwind_Dashboard_Background9310643630711306.png",
+          "path": "Northwind_Dashboard_Background9310643630711306.png",
+          "type": "Image"
+        },
+        {
+          "name": "title_bar_purple9184810490340988.png",
+          "path": "title_bar_purple9184810490340988.png",
+          "type": "Image"
+        }
+      ]
+    }
+  ],
+  "settings": {
+    "useStylableVisualContainerHeader": true,
+    "exportDataMode": "AllowSummarized",
+    "defaultDrillFilterOtherVisuals": true,
+    "allowChangeFilterTypes": true,
+    "allowInlineExploration": true,
+    "useEnhancedTooltips": true,
+    "useDefaultAggregateDisplayName": true
+  }
+}

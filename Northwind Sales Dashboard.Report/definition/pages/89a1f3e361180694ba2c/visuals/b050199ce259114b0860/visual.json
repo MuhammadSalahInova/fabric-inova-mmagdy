@@ -1,0 +1,17 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.12.0/schema.json",
+  "name": "b050199ce259114b0860",
+  "position": {
+    "x": 26.212303980699637,
+    "y": 235.452439537222,
+    "z": 17000,
+    "height": 480.53385145053289,
+    "width": 879.27877947295417,
+    "tabOrder": 21000
+  },
+  "visualGroup": {
+    "displayName": "Insight_Selling",
+    "groupMode": "ScaleMode"
+  },
+  "isHidden": true
+}

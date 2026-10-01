@@ -1,0 +1,17 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.12.0/schema.json",
+  "name": "f8590188ec95369da37b",
+  "position": {
+    "x": 38.460471567267682,
+    "y": 215.21497919556171,
+    "z": 13000,
+    "height": 480.83217753120664,
+    "width": 879.27877947295417,
+    "tabOrder": 12000
+  },
+  "visualGroup": {
+    "displayName": "Insight_Buying",
+    "groupMode": "ScaleMode"
+  },
+  "isHidden": true
+}

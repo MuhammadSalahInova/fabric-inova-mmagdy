@@ -1,0 +1,11 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/gitIntegration/platformProperties/2.0.0/schema.json",
+  "metadata": {
+    "type": "DataPipeline",
+    "displayName": "PL_Northwind_Ingestion"
+  },
+  "config": {
+    "version": "2.0",
+    "logicalId": "c6f60a97-9cd4-a8c9-4842-b38ce60b1e43"
+  }
+}

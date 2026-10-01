@@ -1,0 +1,55 @@
+table DimShippers
+	lineageTag: ce2b5662-5e9c-4f34-a05d-9a3ccf1f700b
+	sourceLineageTag: [dbo].[DimShippers]
+
+	column ShipperKey
+		dataType: int64
+		formatString: 0
+		sourceProviderType: bigint
+		lineageTag: e0c1100c-9ea5-4b52-b104-9096f3ba5ce6
+		sourceLineageTag: ShipperKey
+		summarizeBy: none
+		sourceColumn: ShipperKey
+
+		annotation SummarizationSetBy = Automatic
+
+	column CompanyName
+		dataType: string
+		sourceProviderType: varchar(8000)
+		lineageTag: 82cc0dd9-1d5c-4c03-a289-41a0243fe6e1
+		sourceLineageTag: CompanyName
+		summarizeBy: none
+		sourceColumn: CompanyName
+
+		annotation SummarizationSetBy = Automatic
+
+	column Phone
+		dataType: string
+		sourceProviderType: varchar(8000)
+		lineageTag: 1e71c8e2-c626-4b8d-8577-b7f9c3738f60
+		sourceLineageTag: Phone
+		summarizeBy: none
+		sourceColumn: Phone
+
+		annotation SummarizationSetBy = Automatic
+
+	column ShipperID
+		dataType: int64
+		formatString: 0
+		sourceProviderType: bigint
+		lineageTag: 3636e4f6-ac81-4d7c-abe2-4711f9bcc7b6
+		sourceLineageTag: ShipperID
+		summarizeBy: none
+		sourceColumn: ShipperID
+
+		annotation SummarizationSetBy = Automatic
+
+	partition DimShippers = entity
+		mode: directLake
+		source
+			entityName: DimShippers
+			schemaName: dbo
+			expressionSource: DatabaseQuery
+
+	annotation PBI_ResultType = Table
+

@@ -1,0 +1,17 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.12.0/schema.json",
+  "name": "572a1a24297969708e69",
+  "position": {
+    "x": 931.37309292649093,
+    "y": 247.77447216337018,
+    "z": 20000,
+    "height": 480.4913439882335,
+    "width": 988.62690707350907,
+    "tabOrder": 23000
+  },
+  "visualGroup": {
+    "displayName": "Seasonality_Recommendation",
+    "groupMode": "ScaleMode"
+  },
+  "isHidden": true
+}

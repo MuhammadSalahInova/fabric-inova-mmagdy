@@ -1,0 +1,11 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/gitIntegration/platformProperties/2.0.0/schema.json",
+  "metadata": {
+    "type": "Notebook",
+    "displayName": "Northwind Sales Agent — Instructions & Example Questions"
+  },
+  "config": {
+    "version": "2.0",
+    "logicalId": "09204154-43a2-a299-4205-5301fb83e380"
+  }
+}

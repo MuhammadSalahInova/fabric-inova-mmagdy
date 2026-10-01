@@ -1,0 +1,145 @@
+table DimSuppliers
+	lineageTag: a9d926fe-a4de-403e-84a3-2a753bfa1550
+	sourceLineageTag: [dbo].[DimSuppliers]
+
+	column SupplierKey
+		dataType: int64
+		formatString: 0
+		sourceProviderType: bigint
+		lineageTag: ad8e3b83-35de-4da7-a7db-bcf02779e44d
+		sourceLineageTag: SupplierKey
+		summarizeBy: none
+		sourceColumn: SupplierKey
+
+		annotation SummarizationSetBy = Automatic
+
+	column Address
+		dataType: string
+		sourceProviderType: varchar(8000)
+		lineageTag: 61c20a46-9b48-4a47-9982-98798d65b442
+		sourceLineageTag: Address
+		summarizeBy: none
+		sourceColumn: Address
+
+		annotation SummarizationSetBy = Automatic
+
+	column City
+		dataType: string
+		sourceProviderType: varchar(8000)
+		lineageTag: 4a48a4e0-6ddb-491d-a9b9-c3b9e8f44ad2
+		sourceLineageTag: City
+		summarizeBy: none
+		sourceColumn: City
+
+		annotation SummarizationSetBy = Automatic
+
+	column CompanyName
+		dataType: string
+		sourceProviderType: varchar(8000)
+		lineageTag: 330fdc9a-7d92-415a-abc5-aee9ee6c19a2
+		sourceLineageTag: CompanyName
+		summarizeBy: none
+		sourceColumn: CompanyName
+
+		annotation SummarizationSetBy = Automatic
+
+	column ContactName
+		dataType: string
+		sourceProviderType: varchar(8000)
+		lineageTag: 8a6f8a53-9b51-45bd-ab4e-378bf35a963e
+		sourceLineageTag: ContactName
+		summarizeBy: none
+		sourceColumn: ContactName
+
+		annotation SummarizationSetBy = Automatic
+
+	column ContactTitle
+		dataType: string
+		sourceProviderType: varchar(8000)
+		lineageTag: 3f9e3fec-9608-4f47-be4f-252f55a68b3c
+		sourceLineageTag: ContactTitle
+		summarizeBy: none
+		sourceColumn: ContactTitle
+
+		annotation SummarizationSetBy = Automatic
+
+	column Country
+		dataType: string
+		sourceProviderType: varchar(8000)
+		lineageTag: 3faba4d6-e75f-4abf-9056-6585357c70da
+		sourceLineageTag: Country
+		summarizeBy: none
+		sourceColumn: Country
+
+		annotation SummarizationSetBy = Automatic
+
+	column Fax
+		dataType: string
+		sourceProviderType: varchar(8000)
+		lineageTag: b06cf6b6-1ff1-4abb-8129-87c335af344f
+		sourceLineageTag: Fax
+		summarizeBy: none
+		sourceColumn: Fax
+
+		annotation SummarizationSetBy = Automatic
+
+	column Phone
+		dataType: string
+		sourceProviderType: varchar(8000)
+		lineageTag: 3a1d5026-0dfe-4489-a4de-c52cb22141d8
+		sourceLineageTag: Phone
+		summarizeBy: none
+		sourceColumn: Phone
+
+		annotation SummarizationSetBy = Automatic
+
+	column PostalCode
+		dataType: string
+		sourceProviderType: varchar(8000)
+		lineageTag: 70c73080-4335-4c87-8705-27dd59a03db1
+		sourceLineageTag: PostalCode
+		summarizeBy: none
+		sourceColumn: PostalCode
+
+		annotation SummarizationSetBy = Automatic
+
+	column Region
+		dataType: string
+		sourceProviderType: varchar(8000)
+		lineageTag: 2a811d3f-5588-465a-b050-7b4df76864e6
+		sourceLineageTag: Region
+		summarizeBy: none
+		sourceColumn: Region
+
+		annotation SummarizationSetBy = Automatic
+
+	column SupplierID
+		dataType: int64
+		formatString: 0
+		sourceProviderType: bigint
+		lineageTag: cd9fef41-c61f-49b4-b419-4d3fc2bfe7b9
+		sourceLineageTag: SupplierID
+		summarizeBy: none
+		sourceColumn: SupplierID
+
+		annotation SummarizationSetBy = Automatic
+
+	column HomePage
+		dataType: string
+		sourceProviderType: varchar(8000)
+		lineageTag: 23e17cfc-13f0-413a-9c56-c892c1496a78
+		sourceLineageTag: HomePage
+		summarizeBy: none
+		sourceColumn: HomePage
+
+		annotation SummarizationSetBy = Automatic
+
+	partition DimSuppliers = entity
+		mode: directLake
+		source
+			entityName: DimSuppliers
+			schemaName: dbo
+			expressionSource: DatabaseQuery
+
+	annotation PBI_ResultType = Table
+

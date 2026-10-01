@@ -1,0 +1,787 @@
+{
+  "properties": {
+    "activities": [
+      {
+        "type": "ForEach",
+        "typeProperties": {
+          "isSequential": true,
+          "items": {
+            "value": "@pipeline().parameters.TableList",
+            "type": "Expression"
+          },
+          "activities": [
+            {
+              "type": "Copy",
+              "typeProperties": {
+                "source": {
+                  "type": "RestSource",
+                  "requestMethod": "GET",
+                  "paginationRules": {
+                    "AbsoluteUrl": {
+                      "value": "$['@odata.nextLink']",
+                      "type": "Expression"
+                    }
+                  },
+                  "httpRequestTimeout": "00:01:40",
+                  "requestInterval": "00.00:00:00.010",
+                  "datasetSettings": {
+                    "type": "RestResource",
+                    "typeProperties": {
+                      "relativeUrl": {
+                        "value": "@{item()}?$format=json&$top=10000",
+                        "type": "Expression"
+                      }
+                    },
+                    "schema": [],
+                    "externalReferences": {
+                      "connection": "1677e25c-40a3-45a0-8e13-c98d23b12c6c"
+                    },
+                    "annotations": []
+                  }
+                },
+                "sink": {
+                  "type": "JsonSink",
+                  "formatSettings": {
+                    "type": "JsonWriteSettings"
+                  },
+                  "storeSettings": {
+                    "type": "AzureBlobStorageWriteSettings"
+                  },
+                  "datasetSettings": {
+                    "type": "Json",
+                    "typeProperties": {
+                      "location": {
+                        "type": "LakehouseLocation",
+                        "fileName": {
+                          "value": "@concat('bronze_', item())",
+                          "type": "Expression"
+                        }
+                      }
+                    },
+                    "schema": {},
+                    "linkedService": {
+                      "name": "Bronze_LH",
+                      "properties": {
+                        "type": "Lakehouse",
+                        "typeProperties": {
+                          "artifactId": "823b8a5c-1208-854b-44e1-c2e420795e0d",
+                          "workspaceId": "00000000-0000-0000-0000-000000000000",
+                          "rootFolder": "Files"
+                        },
+                        "annotations": []
+                      }
+                    },
+                    "annotations": []
+                  }
+                },
+                "enableStaging": false
+              },
+              "policy": {
+                "timeout": "0.12:00:00",
+                "retry": 2,
+                "retryIntervalInSeconds": 30,
+                "secureInput": false,
+                "secureOutput": false
+              },
+              "name": "Copy_ToBronze",
+              "dependsOn": []
+            },
+            {
+              "type": "AppendVariable",
+              "typeProperties": {
+                "variableName": "var_copy_results",
+                "value": {
+                  "value": "@json(concat('{\"table\":\"', item(), '\",\"status\":\"', activity('Copy_ToBronze').output.executionDetails[0].status, '\",\"rowsCopied\":', string(activity('Copy_ToBronze').output.rowsCopied), ',\"dataRead\":', string(activity('Copy_ToBronze').output.dataRead), ',\"dataWritten\":', string(activity('Copy_ToBronze').output.dataWritten), ',\"copyDuration\":', string(activity('Copy_ToBronze').output.copyDuration), '}'))",
+                  "type": "Expression"
+                }
+              },
+              "name": "Append_Success",
+              "dependsOn": [
+                {
+                  "activity": "Copy_ToBronze",
+                  "dependencyConditions": [
+                    "Succeeded"
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "AppendVariable",
+              "typeProperties": {
+                "variableName": "var_failed_tables",
+                "value": {
+                  "value": "@item()",
+                  "type": "Expression"
+                }
+              },
+              "name": "Append_Failure",
+              "dependsOn": [
+                {
+                  "activity": "Copy_ToBronze",
+                  "dependencyConditions": [
+                    "Failed"
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "WebActivity",
+              "typeProperties": {
+                "method": "GET",
+                "relativeUrl": {
+                  "value": "@concat('/V3/Northwind/Northwind.svc/', item(), '/$count')",
+                  "type": "Expression"
+                },
+                "headers": {}
+              },
+              "externalReferences": {
+                "connection": "4180be84-e79f-463e-bd9c-b873fe526020"
+              },
+              "policy": {
+                "timeout": "0.12:00:00",
+                "retry": 2,
+                "retryIntervalInSeconds": 30,
+                "secureInput": false,
+                "secureOutput": false
+              },
+              "name": "Get_SourceCount",
+              "dependsOn": [
+                {
+                  "activity": "Append_Success",
+                  "dependencyConditions": [
+                    "Succeeded"
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "AppendVariable",
+              "typeProperties": {
+                "variableName": "var_source_counts",
+                "value": {
+                  "value": "@json(concat('{\"table\":\"', item(), '\",\"count\":', string(int(activity('Get_SourceCount').output.Response)), '}'))",
+                  "type": "Expression"
+                }
+              },
+              "name": "Append_SourceCount",
+              "dependsOn": [
+                {
+                  "activity": "Get_SourceCount",
+                  "dependencyConditions": [
+                    "Succeeded"
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        "name": "ForEach1",
+        "dependsOn": [
+          {
+            "activity": "Set_InitCopyResults",
+            "dependencyConditions": [
+              "Succeeded"
+            ]
+          }
+        ]
+      },
+      {
+        "type": "SetVariable",
+        "typeProperties": {
+          "variableName": "var_success_tables",
+          "value": {
+            "value": "@json(activity('NB_Bronze_Validation').output.result.exitValue).passed_tables",
+            "type": "Expression"
+          }
+        },
+        "policy": {
+          "secureInput": false,
+          "secureOutput": false
+        },
+        "name": "Set_SuccessTables",
+        "dependsOn": [
+          {
+            "activity": "NB_Bronze_Validation",
+            "dependencyConditions": [
+              "Succeeded"
+            ]
+          }
+        ]
+      },
+      {
+        "type": "SetVariable",
+        "typeProperties": {
+          "variableName": "var_failed_tables",
+          "value": {
+            "value": "@json(activity('NB_Bronze_Validation').output.result.exitValue).failed_tables",
+            "type": "Expression"
+          }
+        },
+        "policy": {
+          "secureInput": false,
+          "secureOutput": false
+        },
+        "name": "Failed_Tables",
+        "dependsOn": [
+          {
+            "activity": "Set_SuccessTables",
+            "dependencyConditions": [
+              "Succeeded"
+            ]
+          }
+        ]
+      },
+      {
+        "type": "TridentNotebook",
+        "typeProperties": {
+          "notebookId": "73c22e18-b977-bb07-4176-e121997bd65c",
+          "workspaceId": "00000000-0000-0000-0000-000000000000",
+          "parameters": {
+            "run_id": {
+              "value": {
+                "value": "@pipeline().RunId",
+                "type": "Expression"
+              },
+              "type": "string"
+            },
+            "base_path": {
+              "value": {
+                "value": "@pipeline().parameters.bronze_base_path",
+                "type": "Expression"
+              },
+              "type": "string"
+            },
+            "copy_results_json": {
+              "value": {
+                "value": "@concat('[', join(variables('var_copy_results'), ','), ']')",
+                "type": "Expression"
+              },
+              "type": "string"
+            },
+            "success_tables_json": {
+              "value": {
+                "value": "@string(variables('var_success_tables'))",
+                "type": "Expression"
+              },
+              "type": "string"
+            },
+            "failed_tables_json": {
+              "value": {
+                "value": "@string(variables('var_failed_tables'))",
+                "type": "Expression"
+              },
+              "type": "string"
+            }
+          }
+        },
+        "policy": {
+          "timeout": "0.12:00:00",
+          "retry": 0,
+          "retryIntervalInSeconds": 30,
+          "secureInput": false,
+          "secureOutput": false
+        },
+        "name": "NB_Log_CopyStatus",
+        "dependsOn": [
+          {
+            "activity": "Failed_Tables",
+            "dependencyConditions": [
+              "Succeeded"
+            ]
+          }
+        ]
+      },
+      {
+        "type": "TridentNotebook",
+        "typeProperties": {
+          "notebookId": "2137bce6-9d9a-b1c2-4b42-5b6f2a2ee6da",
+          "workspaceId": "00000000-0000-0000-0000-000000000000",
+          "parameters": {
+            "bronze_base_path": {
+              "value": {
+                "value": "@pipeline().parameters.bronze_base_path",
+                "type": "Expression"
+              },
+              "type": "string"
+            },
+            "run_id": {
+              "value": {
+                "value": "@pipeline().RunId",
+                "type": "Expression"
+              },
+              "type": "string"
+            },
+            "core_tables_param": {
+              "value": {
+                "value": "@join(pipeline().parameters.TableList, ',')",
+                "type": "Expression"
+              },
+              "type": "string"
+            }
+          }
+        },
+        "policy": {
+          "timeout": "0.12:00:00",
+          "retry": 0,
+          "retryIntervalInSeconds": 30,
+          "secureInput": false,
+          "secureOutput": false
+        },
+        "name": "NB_Silver_Transform",
+        "dependsOn": [
+          {
+            "activity": "NB_Excel_Merge",
+            "dependencyConditions": [
+              "Succeeded"
+            ]
+          }
+        ]
+      },
+      {
+        "type": "TridentNotebook",
+        "typeProperties": {
+          "notebookId": "363a79e9-3395-8582-424f-cd168cb96aaa",
+          "workspaceId": "00000000-0000-0000-0000-000000000000"
+        },
+        "policy": {
+          "timeout": "0.12:00:00",
+          "retry": 0,
+          "retryIntervalInSeconds": 30,
+          "secureInput": false,
+          "secureOutput": false
+        },
+        "name": "NB_Excel_Merge",
+        "dependsOn": [
+          {
+            "activity": "Teams_Bronze_Success",
+            "dependencyConditions": [
+              "Succeeded"
+            ]
+          }
+        ]
+      },
+      {
+        "type": "TridentNotebook",
+        "typeProperties": {
+          "notebookId": "135aff07-65ce-9e04-44c7-c4ee5eaa2abe",
+          "workspaceId": "00000000-0000-0000-0000-000000000000",
+          "parameters": {
+            "excel_file_path": {
+              "value": {
+                "value": "@concat(pipeline().parameters.bronze_base_path, '/', pipeline().parameters.excel_file_name)",
+                "type": "Expression"
+              },
+              "type": "string"
+            },
+            "bronze_base_path": {
+              "value": {
+                "value": "@pipeline().parameters.bronze_base_path",
+                "type": "Expression"
+              },
+              "type": "string"
+            },
+            "run_id": {
+              "value": {
+                "value": "@pipeline().RunId",
+                "type": "Expression"
+              },
+              "type": "string"
+            }
+          }
+        },
+        "policy": {
+          "timeout": "0.12:00:00",
+          "retry": 0,
+          "retryIntervalInSeconds": 30,
+          "secureInput": false,
+          "secureOutput": false
+        },
+        "name": "NB_Excel_Bronze_Load",
+        "dependsOn": [
+          {
+            "activity": "ForEach1",
+            "dependencyConditions": [
+              "Succeeded"
+            ]
+          }
+        ]
+      },
+      {
+        "type": "SetVariable",
+        "typeProperties": {
+          "variableName": "var_excel_output",
+          "value": {
+            "value": "@string(activity('NB_Excel_Bronze_Load').output.result.exitValue)",
+            "type": "Expression"
+          }
+        },
+        "policy": {
+          "secureInput": false,
+          "secureOutput": false
+        },
+        "name": "Set_ExcelRowCounts",
+        "dependsOn": [
+          {
+            "activity": "NB_Excel_Bronze_Load",
+            "dependencyConditions": [
+              "Succeeded"
+            ]
+          }
+        ]
+      },
+      {
+        "type": "TridentNotebook",
+        "typeProperties": {
+          "notebookId": "bf8931f8-ac2d-8486-45f8-43f0dab1c5dd",
+          "workspaceId": "00000000-0000-0000-0000-000000000000",
+          "parameters": {
+            "base_path": {
+              "value": {
+                "value": "@pipeline().parameters.bronze_base_path",
+                "type": "Expression"
+              },
+              "type": "string"
+            },
+            "core_tables_param": {
+              "value": {
+                "value": "@join(pipeline().parameters.TableList, ',')",
+                "type": "Expression"
+              },
+              "type": "string"
+            },
+            "source_counts_json": {
+              "value": {
+                "value": "@concat('[', join(variables('var_source_counts'), ','), ']')",
+                "type": "Expression"
+              },
+              "type": "string"
+            },
+            "run_id": {
+              "value": {
+                "value": "@pipeline().RunId",
+                "type": "Expression"
+              },
+              "type": "string"
+            }
+          }
+        },
+        "policy": {
+          "timeout": "0.12:00:00",
+          "retry": 0,
+          "retryIntervalInSeconds": 30,
+          "secureInput": false,
+          "secureOutput": false
+        },
+        "name": "NB_Bronze_Validation",
+        "dependsOn": [
+          {
+            "activity": "Set_ExcelRowCounts",
+            "dependencyConditions": [
+              "Succeeded"
+            ]
+          }
+        ]
+      },
+      {
+        "type": "SetVariable",
+        "typeProperties": {
+          "variableName": "var_source_counts",
+          "value": [
+            "   @json('[]')"
+          ]
+        },
+        "policy": {
+          "secureInput": false,
+          "secureOutput": false
+        },
+        "name": "Set_InitSourceCounts",
+        "dependsOn": []
+      },
+      {
+        "type": "SetVariable",
+        "typeProperties": {
+          "variableName": "var_copy_results",
+          "value": [
+            "@json('[]')"
+          ]
+        },
+        "policy": {
+          "secureInput": false,
+          "secureOutput": false
+        },
+        "name": "Set_InitCopyResults",
+        "dependsOn": [
+          {
+            "activity": "Set_InitSourceCounts",
+            "dependencyConditions": [
+              "Succeeded"
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Script",
+        "typeProperties": {
+          "scripts": [
+            {
+              "text": {
+                "value": "-- ==========================================================================\n-- Gold Star Schema Build Script v6\n-- Optimized for Microsoft Fabric / Synapse Data Warehouse\n-- =============================================================================\n\n-- ---- DimCustomers ----\nDROP TABLE IF EXISTS dbo.DimCustomers;\nCREATE TABLE dbo.DimCustomers AS\nSELECT\n    ROW_NUMBER() OVER (ORDER BY CustomerID) AS CustomerKey,\n    CustomerID, \n    CompanyName, \n    ContactName, \n    ContactTitle,\n    Address, \n    City, \n    Region, \n    PostalCode, \n    Country, \n    Phone, \n    Fax\nFROM Silver_LH.dbo.silver_customers\nWHERE is_current = 1;\n\n-- ---- DimEmployees ----\nDROP TABLE IF EXISTS dbo.DimEmployees;\nCREATE TABLE dbo.DimEmployees AS\nSELECT\n    ROW_NUMBER() OVER (ORDER BY EmployeeID) AS EmployeeKey,\n    EmployeeID,\n    LastName,\n    FirstName,\n    Title,\n    TitleOfCourtesy,\n    BirthDate,\n    HireDate,\n    Address,\n    City,\n    Region,\n    PostalCode,\n    Country,\n    HomePhone,\n    Extension,\n    Photo,\n    Notes,\n    ReportsTo,\n    PhotoPath\nFROM Silver_LH.dbo.silver_employees;\n\n-- ---- DimCategories ----\nDROP TABLE IF EXISTS dbo.DimCategories;\nDECLARE @MinValidCategoryID INT = 1;\nDECLARE @MaxValidCategoryID INT = 8;\n\nCREATE TABLE dbo.DimCategories AS\nSELECT\n    ROW_NUMBER() OVER (ORDER BY CategoryID) AS CategoryKey,\n    CategoryID,\n    CategoryName,\n    Description,\n    Picture\nFROM Silver_LH.dbo.silver_categories\nWHERE CategoryID >= @MinValidCategoryID\n  AND CategoryID <= @MaxValidCategoryID;\n\nDECLARE @OthersCategoryKey INT = (SELECT ISNULL(MAX(CategoryKey), 0) + 1 FROM dbo.DimCategories);\nDECLARE @OthersCategoryID INT = -1;\n\nINSERT INTO dbo.DimCategories (CategoryKey, CategoryID, CategoryName)\nVALUES (@OthersCategoryKey, @OthersCategoryID, 'Others');\n\n-- ---- DimSuppliers ----\nDROP TABLE IF EXISTS dbo.DimSuppliers;\nCREATE TABLE dbo.DimSuppliers AS\nSELECT\n    ROW_NUMBER() OVER (ORDER BY SupplierID) AS SupplierKey,\n    SupplierID,\n    CompanyName,\n    ContactName,\n    ContactTitle,\n    Address,\n    City,\n    Region,\n    PostalCode,\n    Country,\n    Phone,\n    Fax,\n    HomePage\nFROM Silver_LH.dbo.silver_suppliers;\n\n-- ---- DimShippers ----\nDROP TABLE IF EXISTS dbo.DimShippers;\nCREATE TABLE dbo.DimShippers AS\nSELECT\n    ROW_NUMBER() OVER (ORDER BY ShipperID) AS ShipperKey,\n    ShipperID,\n    CompanyName,\n    Phone\nFROM Silver_LH.dbo.silver_shippers;\n\n-- ---- DimRegions ----\nDROP TABLE IF EXISTS dbo.DimRegions;\nCREATE TABLE dbo.DimRegions AS\nSELECT\n    ROW_NUMBER() OVER (ORDER BY RegionID) AS RegionKey,\n    RegionID,\n    RegionDescription\nFROM Silver_LH.dbo.silver_regions;\n\n-- ---- DimTerritories ----\nDROP TABLE IF EXISTS dbo.DimTerritories;\nCREATE TABLE dbo.DimTerritories AS\nSELECT\n    ROW_NUMBER() OVER (ORDER BY TerritoryID) AS TerritoryKey,\n    TerritoryID,\n    TerritoryDescription,\n    RegionID\nFROM Silver_LH.dbo.silver_territories;\n\n-- ---- DimProducts ----\nDROP TABLE IF EXISTS dbo.DimProducts;\nCREATE TABLE dbo.DimProducts AS\nSELECT\n    ROW_NUMBER() OVER (ORDER BY p.ProductID) AS ProductKey,\n    p.ProductID,\n    p.ProductName,\n    p.SupplierID,\n    p.CategoryID,\n    p.QuantityPerUnit,\n    p.UnitPrice,\n    p.UnitsInStock,\n    p.UnitsOnOrder,\n    p.ReorderLevel,\n    p.Discontinued,\n    CASE\n        WHEN p.CategoryID IS NULL THEN @OthersCategoryKey\n        WHEN p.CategoryID < @MinValidCategoryID THEN @OthersCategoryKey\n        WHEN p.CategoryID > @MaxValidCategoryID THEN @OthersCategoryKey\n        ELSE c.CategoryKey\n    END AS CategoryKey,\n    s.SupplierKey\nFROM Silver_LH.dbo.silver_products AS p\nLEFT JOIN dbo.DimCategories AS c\n    ON p.CategoryID = c.CategoryID\n    AND p.CategoryID BETWEEN @MinValidCategoryID AND @MaxValidCategoryID\nLEFT JOIN dbo.DimSuppliers AS s \n    ON p.SupplierID = s.SupplierID\nWHERE p.is_current = 1;\n\n-- ---- DimDate (covers OrderDate, ShippedDate, and RequiredDate) ----\nDROP TABLE IF EXISTS dbo.DimDate;\n\nDECLARE @MinDate DATE,\n        @MaxDate DATE;\n\nSELECT\n    @MinDate =\n        DATEADD(\n            DAY,\n            -7,\n            MIN(MinDate)\n        ),\n    @MaxDate =\n        DATEADD(\n            DAY,\n            7,\n            MAX(MaxDate)\n        )\nFROM\n(\n    SELECT\n        MIN(TRY_CONVERT(DATE, OrderDate, 120)) AS MinDate,\n        MAX(TRY_CONVERT(DATE, OrderDate, 120)) AS MaxDate\n    FROM Silver_LH.dbo.silver_orders\n    WHERE is_current = 1\n\n    UNION ALL\n\n    SELECT\n        MIN(TRY_CONVERT(DATE, ShippedDate, 120)) AS MinDate,\n        MAX(TRY_CONVERT(DATE, ShippedDate, 120)) AS MaxDate\n    FROM Silver_LH.dbo.silver_orders\n    WHERE is_current = 1\n\n    UNION ALL\n\n    SELECT\n        MIN(TRY_CONVERT(DATE, RequiredDate, 120)) AS MinDate,\n        MAX(TRY_CONVERT(DATE, RequiredDate, 120)) AS MaxDate\n    FROM Silver_LH.dbo.silver_orders\n    WHERE is_current = 1\n) AS DateRanges;\n\nCREATE TABLE dbo.DimDate AS\nWITH E1(N) AS (SELECT 1 FROM (VALUES (1),(1),(1),(1),(1),(1),(1),(1),(1),(1)) AS X(N)),\n     E2(N) AS (SELECT 1 FROM E1 a CROSS JOIN E1 b),\n     E4(N) AS (SELECT 1 FROM E2 a CROSS JOIN E2 b),\n     E6(N) AS (SELECT 1 FROM E4 a CROSS JOIN E2 b),\n     Tally(N) AS (SELECT ROW_NUMBER() OVER (ORDER BY (SELECT NULL)) FROM E6)\nSELECT TOP (DATEDIFF(day, @MinDate, @MaxDate) + 1)\n    CAST(DATEADD(day, N - 1, @MinDate) AS DATE) AS FullDate,\n    CAST(FORMAT(DATEADD(day, N - 1, @MinDate), 'yyyyMMdd') AS INT) AS DateKey,\n    YEAR(DATEADD(day, N - 1, @MinDate)) AS [Year],\n    DATEPART(quarter, DATEADD(day, N - 1, @MinDate)) AS [Quarter],\n    MONTH(DATEADD(day, N - 1, @MinDate)) AS [Month],\n    CAST(DATENAME(month, DATEADD(day, N - 1, @MinDate)) AS VARCHAR(20)) AS MonthName,\n    DAY(DATEADD(day, N - 1, @MinDate)) AS [Day],\n    CAST(DATENAME(weekday, DATEADD(day, N - 1, @MinDate)) AS VARCHAR(20)) AS DayName,\n    DATEPART(week, DATEADD(day, N - 1, @MinDate)) AS WeekOfYear\nFROM Tally;\n\n-- ============================================================================\n-- SALES FACT TABLE\n-- Grain: One row per Order Detail\n-- \n-- Date roles:\n--   OrderDateKey    -> DimDate (ACTIVE relationship)\n--   ShippedDateKey  -> DimDate (INACTIVE relationship)\n--   RequiredDateKey -> DimDate (INACTIVE relationship)\n-- ============================================================================\n\nDROP TABLE IF EXISTS dbo.Sales;\n\nCREATE TABLE dbo.Sales AS\nSELECT\n    -- ============================================================\n    -- Business Keys\n    -- ============================================================\n    od.OrderID,\n    od.ProductID,\n\n    -- ============================================================\n    -- Dimension Surrogate Keys\n    -- ============================================================\n    cu.CustomerKey,\n    em.EmployeeKey,\n    pr.ProductKey,\n    sh.ShipperKey,\n\n    -- ============================================================\n    -- DATE KEYS (Join to DimDate)\n    -- ============================================================\n    dtOrder.DateKey AS OrderDateKey,\n    dtShip.DateKey AS ShippedDateKey,\n    dtRequired.DateKey AS RequiredDateKey,\n\n    -- ============================================================\n    -- ORIGINAL DATES (For debugging and calculations)\n    -- ============================================================\n    TRY_CONVERT(DATE, o.OrderDate, 120) AS OrderDate,\n    TRY_CONVERT(DATE, o.ShippedDate, 120) AS ShippedDate,\n    TRY_CONVERT(DATE, o.RequiredDate, 120) AS RequiredDate,\n\n    -- ============================================================\n    -- ORDER DETAIL MEASURES\n    -- ============================================================\n    od.Quantity,\n    od.UnitPrice,\n    od.Discount,\n    CAST(od.Quantity * od.UnitPrice * (1 - od.Discount) AS DECIMAL(18,2)) AS LineTotal,\n\n    -- ============================================================\n    -- SHIPPING INFORMATION\n    -- ============================================================\n    o.Freight,\n    o.ShipCountry,\n    o.ShipRegion,\n\n    -- ============================================================\n    -- OPERATIONAL METRICS\n    -- ============================================================\n    \n    -- Delivery Days (Order to Shipment)\n    CASE\n        WHEN TRY_CONVERT(DATE, o.OrderDate, 120) IS NOT NULL\n         AND TRY_CONVERT(DATE, o.ShippedDate, 120) IS NOT NULL\n        THEN DATEDIFF(\n            DAY,\n            TRY_CONVERT(DATE, o.OrderDate, 120),\n            TRY_CONVERT(DATE, o.ShippedDate, 120)\n        )\n        ELSE NULL\n    END AS DeliveryDays,\n\n    -- On-Time Flag: 1 = On Time, 0 = Late, NULL = Unshipped/Missing Date\n    CASE\n        WHEN TRY_CONVERT(DATE, o.ShippedDate, 120) IS NULL\n          OR TRY_CONVERT(DATE, o.RequiredDate, 120) IS NULL\n        THEN NULL\n        WHEN TRY_CONVERT(DATE, o.ShippedDate, 120) <= TRY_CONVERT(DATE, o.RequiredDate, 120)\n        THEN 1\n        ELSE 0\n    END AS OnTimeFlag\n\nFROM Silver_LH.dbo.silver_order_details AS od\n\n-- ============================================================\n-- JOIN TO ORDERS\n-- ============================================================\nLEFT JOIN Silver_LH.dbo.silver_orders AS o\n    ON od.OrderID = o.OrderID\n    AND o.is_current = 1\n\n-- ============================================================\n-- JOIN TO DIMENSIONS\n-- ============================================================\nLEFT JOIN dbo.DimCustomers AS cu\n    ON o.CustomerID = cu.CustomerID\n\nLEFT JOIN dbo.DimEmployees AS em\n    ON o.EmployeeID = em.EmployeeID\n\nLEFT JOIN dbo.DimProducts AS pr\n    ON od.ProductID = pr.ProductID\n\nLEFT JOIN dbo.DimShippers AS sh\n    ON o.ShipVia = sh.ShipperID\n\n-- ============================================================\n-- JOIN TO DATE DIMENSION (3 separate joins for 3 date roles)\n-- ============================================================\nLEFT JOIN dbo.DimDate AS dtOrder\n    ON TRY_CONVERT(DATE, o.OrderDate, 120) = dtOrder.FullDate\n\nLEFT JOIN dbo.DimDate AS dtShip\n    ON TRY_CONVERT(DATE, o.ShippedDate, 120) = dtShip.FullDate\n\nLEFT JOIN dbo.DimDate AS dtRequired\n    ON TRY_CONVERT(DATE, o.RequiredDate, 120) = dtRequired.FullDate\n\nWHERE od.is_current = 1;",
+                "type": "Expression"
+              },
+              "type": "Query"
+            }
+          ],
+          "scriptBlockExecutionTimeout": "02:00:00"
+        },
+        "linkedService": {
+          "name": "Gold_LH",
+          "properties": {
+            "type": "DataWarehouse",
+            "typeProperties": {
+              "artifactId": "2ef68ba5-6789-b77f-4681-a6812e53480e",
+              "endpoint": "pecotg37dq5efkaj45i3vxdg4a-pvxh3m2ahs2uvhbfh32lavn6q4.datawarehouse.fabric.microsoft.com",
+              "workspaceId": "00000000-0000-0000-0000-000000000000"
+            },
+            "annotations": []
+          }
+        },
+        "policy": {
+          "timeout": "0.12:00:00",
+          "retry": 0,
+          "retryIntervalInSeconds": 30,
+          "secureInput": false,
+          "secureOutput": false
+        },
+        "name": "Gold_Transform",
+        "dependsOn": [
+          {
+            "activity": "Wait_Before_Gold",
+            "dependencyConditions": [
+              "Succeeded"
+            ]
+          }
+        ]
+      },
+      {
+        "type": "PBISemanticModelRefresh",
+        "typeProperties": {
+          "method": "POST",
+          "groupId": "b37d6e7d-3c40-4ab5-9c25-3ef4b055be87",
+          "datasetId": "bcd1a71b-9cf4-4a51-b50c-484912cbde29",
+          "commitMode": "Transactional",
+          "waitOnCompletion": true,
+          "operationType": "SemanticModelRefresh"
+        },
+        "externalReferences": {
+          "connection": "12c7fe49-fa17-45b9-bb61-0a01ac55a18e"
+        },
+        "policy": {
+          "timeout": "0.12:00:00",
+          "retry": 3,
+          "retryIntervalInSeconds": 60,
+          "secureInput": false,
+          "secureOutput": false
+        },
+        "name": "Refresh_sm_gold",
+        "dependsOn": [
+          {
+            "activity": "Wait_Before_Refresh",
+            "dependencyConditions": [
+              "Succeeded"
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Wait",
+        "typeProperties": {
+          "waitTimeInSeconds": 45
+        },
+        "name": "Wait_Before_Refresh",
+        "dependsOn": [
+          {
+            "activity": "Gold_Transform",
+            "dependencyConditions": [
+              "Succeeded"
+            ]
+          }
+        ]
+      },
+      {
+        "type": "MicrosoftTeams",
+        "typeProperties": {
+          "content": "@concat('Bronze layer copy and validation completed.', '\n\nRun time: ', pipeline().TriggerTime, '\n\nTables successfully copied: ', string(length(variables('var_success_tables'))), '\n\nTables failed: ', string(length(variables('var_failed_tables'))), '\n\n', if(greater(length(variables('var_failed_tables')), 0), concat('⚠️ Failed tables: ', join(variables('var_failed_tables'), ', ')), '✅ No failures — all tables validated successfully.'))",
+          "teamId": "43f164df-f56d-409d-9cbe-25edbfb9209c",
+          "channelId": "19:4a45df15baee426ba185cb7b3e4adf0b@thread.tacv2",
+          "operationType": "SendMessageInChannel",
+          "subject": {
+            "value": "@concat('Bronze Copy & Validation - ', if(equals(length(variables('var_failed_tables')), 0), 'All Passed', 'Some Failed'))",
+            "type": "Expression"
+          }
+        },
+        "externalReferences": {
+          "connection": "da60be2d-24b9-47f6-88ec-accf33b2abfc"
+        },
+        "policy": {
+          "timeout": "0.12:00:00",
+          "retry": 0,
+          "retryIntervalInSeconds": 30,
+          "secureInput": false,
+          "secureOutput": false
+        },
+        "name": "Teams_Bronze_Success",
+        "dependsOn": [
+          {
+            "activity": "NB_Log_CopyStatus",
+            "dependencyConditions": [
+              "Succeeded"
+            ]
+          }
+        ]
+      },
+      {
+        "type": "MicrosoftTeams",
+        "typeProperties": {
+          "content": "@concat('Northwind ingestion pipeline completed successfully.', '\n\nRun ID: ', pipeline().RunId, '\n\nRun time: ', pipeline().TriggerTime, '\n\nTables copied: ', string(length(variables('var_success_tables'))), '\n\nTables failed: ', string(length(variables('var_failed_tables'))))",
+          "teamId": "43f164df-f56d-409d-9cbe-25edbfb9209c",
+          "channelId": "19:4a45df15baee426ba185cb7b3e4adf0b@thread.tacv2",
+          "operationType": "SendMessageInChannel",
+          "subject": {
+            "value": "@concat('Pipeline Succeeded - Run ', pipeline().RunId)",
+            "type": "Expression"
+          }
+        },
+        "externalReferences": {
+          "connection": "da60be2d-24b9-47f6-88ec-accf33b2abfc"
+        },
+        "policy": {
+          "timeout": "0.12:00:00",
+          "retry": 0,
+          "retryIntervalInSeconds": 30,
+          "secureInput": false,
+          "secureOutput": false
+        },
+        "name": "Teams_Pipeline_Success",
+        "dependsOn": [
+          {
+            "activity": "Refresh_sm_gold",
+            "dependencyConditions": [
+              "Succeeded"
+            ]
+          }
+        ]
+      },
+      {
+        "type": "MicrosoftTeams",
+        "typeProperties": {
+          "content": "@concat('⚠️ Northwind ingestion pipeline failed.', '\n\nRun ID: ', pipeline().RunId, '\n\nRun time: ', pipeline().TriggerTime, '\n\nTables succeeded: ', string(length(variables('var_success_tables'))), '\n\nTables failed: ', string(length(variables('var_failed_tables'))), '\n\nFailed tables: ', if(greater(length(variables('var_failed_tables')), 0), join(variables('var_failed_tables'), ', '), 'N/A — failure occurred elsewhere in the pipeline'))",
+          "teamId": "43f164df-f56d-409d-9cbe-25edbfb9209c",
+          "channelId": "19:adcadb65a29f4106b8b5983b4e660f10@thread.tacv2",
+          "operationType": "SendMessageInChannel",
+          "subject": {
+            "value": "@concat('Pipeline FAILED - Run ', pipeline().RunId)",
+            "type": "Expression"
+          }
+        },
+        "externalReferences": {
+          "connection": "da60be2d-24b9-47f6-88ec-accf33b2abfc"
+        },
+        "policy": {
+          "timeout": "0.12:00:00",
+          "retry": 0,
+          "retryIntervalInSeconds": 30,
+          "secureInput": false,
+          "secureOutput": false
+        },
+        "name": "Teams_Pipeline_Failure",
+        "dependsOn": [
+          {
+            "activity": "Gold_Transform",
+            "dependencyConditions": [
+              "Failed"
+            ]
+          },
+          {
+            "activity": "Refresh_sm_gold",
+            "dependencyConditions": [
+              "Failed"
+            ]
+          },
+          {
+            "activity": "NB_Silver_Transform",
+            "dependencyConditions": [
+              "Failed"
+            ]
+          },
+          {
+            "activity": "Wait_Before_Gold",
+            "dependencyConditions": [
+              "Failed"
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Wait",
+        "typeProperties": {
+          "waitTimeInSeconds": 60
+        },
+        "name": "Wait_Before_Gold",
+        "dependsOn": [
+          {
+            "activity": "NB_Silver_Transform",
+            "dependencyConditions": [
+              "Succeeded"
+            ]
+          }
+        ]
+      }
+    ],
+    "parameters": {
+      "TableList": {
+        "type": "array",
+        "defaultValue": [
+          "Categories",
+          "Customers",
+          "Employees",
+          "Order_Details",
+          "Orders",
+          "Products",
+          "Regions",
+          "Shippers",
+          "Suppliers",
+          "Territories"
+        ]
+      },
+      "api_base_url": {
+        "type": "string",
+        "defaultValue": "https://services.odata.org/V3/Northwind/Northwind.svc"
+      },
+      "bronze_base_path": {
+        "type": "string",
+        "defaultValue": "abfss://b37d6e7d-3c40-4ab5-9c25-3ef4b055be87@onelake.dfs.fabric.microsoft.com/20795e0d-c2e4-44e1-854b-1208823b8a5c/Files/"
+      },
+      "excel_file_name": {
+        "type": "string",
+        "defaultValue": "FakeStore_Orders_OrderDetails_Customers_Products_Linked.xlsx"
+      }
+    },
+    "variables": {
+      "var_success_tables": {
+        "type": "Array"
+      },
+      "var_failed_tables": {
+        "type": "Array"
+      },
+      "var_source_counts": {
+        "type": "Array"
+      },
+      "var_copy_results": {
+        "type": "Array"
+      },
+      "var_excel_output": {
+        "type": "String"
+      }
+    }
+  }
+}

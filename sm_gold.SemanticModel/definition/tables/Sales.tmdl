@@ -1,0 +1,426 @@
+table Sales
+	lineageTag: 92f18494-6eec-4728-82e0-ad695a752c6d
+	sourceLineageTag: [dbo].[Sales]
+
+	measure 'Glance Insight' =
+			
+			VAR CurYear =
+			    IF(
+			        HASONEVALUE(DimDate[Year]),
+			        FORMAT(SELECTEDVALUE(DimDate[Year]), "0"),
+			        "All Years"
+			    )
+			RETURN
+			"In " & CurYear &
+			", Northwind generated $" &
+			FORMAT([Total Sales], "#,##0") &
+			" in revenue across " &
+			FORMAT([Total Orders], "#,##0") &
+			" orders."
+		lineageTag: bb9e9382-9597-4591-b171-4254cdbd2ce9
+
+		changedProperty = Name
+
+	measure 'Growth Insight' =
+			
+			VAR BestYearTable =
+			    TOPN(
+			        1,
+			        SUMMARIZECOLUMNS(
+			            DimDate[Year],
+			            "Revenue", [Total Sales]
+			        ),
+			        [Revenue], DESC,
+			        DimDate[Year], ASC
+			    )
+			
+			VAR BestYear =
+			    MAXX(
+			        BestYearTable,
+			        DimDate[Year]
+			    )
+			
+			VAR BestRevenue =
+			    MAXX(
+			        BestYearTable,
+			        [Revenue]
+			    )
+			
+			VAR SelectedYear =
+			    IF(
+			        HASONEVALUE(DimDate[Year]),
+			        SELECTEDVALUE(DimDate[Year]),
+			        BLANK()
+			    )
+			
+			RETURN
+			IF(
+			    NOT ISBLANK(SelectedYear),
+			    "Selected year (" &
+			    FORMAT(SelectedYear, "0") &
+			    ") generated $" &
+			    FORMAT([Total Sales], "#,##0") &
+			    " in sales.",
+			
+			    "Peak year: " &
+			    FORMAT(BestYear, "0") &
+			    " with $" &
+			    FORMAT(BestRevenue, "#,##0") &
+			    " in sales."
+			)
+		lineageTag: 85705a0d-7f4b-41d2-9b23-6279ab3c678a
+
+		changedProperty = Name
+
+	measure 'Selling Insight' =
+			
+			VAR TopCategoryTable =
+			    TOPN(
+			        1,
+			        SUMMARIZECOLUMNS(
+			            DimCategories[CategoryName],
+			            "Revenue", [Total Sales]
+			        ),
+			        [Revenue], DESC,
+			        DimCategories[CategoryName], ASC
+			    )
+			
+			VAR TopCategory =
+			    MAXX(
+			        TopCategoryTable,
+			        DimCategories[CategoryName]
+			    )
+			
+			VAR TopProductTable =
+			    TOPN(
+			        1,
+			        SUMMARIZECOLUMNS(
+			            DimProducts[ProductName],
+			            "Revenue", [Total Sales]
+			        ),
+			        [Revenue], DESC,
+			        DimProducts[ProductName], ASC
+			    )
+			
+			VAR TopProduct =
+			    MAXX(
+			        TopProductTable,
+			        DimProducts[ProductName]
+			    )
+			
+			RETURN
+			"Leading category: " &
+			TopCategory &
+			". Top product: " &
+			TopProduct &
+			"."
+		lineageTag: 41f0f5b0-fa27-495b-9877-6fceca173be1
+
+		changedProperty = Name
+
+	measure 'Buying Insight' =
+			
+			VAR TopCustomerTable =
+			    TOPN(
+			        1,
+			        SUMMARIZECOLUMNS(
+			            DimCustomers[CompanyName],
+			            "Revenue", [Total Sales]
+			        ),
+			        [Revenue], DESC,
+			        DimCustomers[CompanyName], ASC
+			    )
+			
+			VAR TopCustomer =
+			    MAXX(
+			        TopCustomerTable,
+			        DimCustomers[CompanyName]
+			    )
+			
+			RETURN
+			"Top customer: " &
+			TopCustomer &
+			" within the current filter selection."
+		lineageTag: 8438dc23-5315-4d86-a958-5c2309323d0f
+
+		changedProperty = Name
+
+	measure 'Operations Insight' =
+			
+			VAR TopEmployeeTable =
+			    TOPN(
+			        1,
+			        ADDCOLUMNS(
+			            VALUES(DimEmployees[EmployeeKey]),
+			            "Revenue", CALCULATE([Total Sales])
+			        ),
+			        [Revenue], DESC,
+			        DimEmployees[EmployeeKey], ASC
+			    )
+			
+			VAR TopEmployeeKey =
+			    MAXX(
+			        TopEmployeeTable,
+			        DimEmployees[EmployeeKey]
+			    )
+			
+			VAR TopEmployee =
+			    CALCULATE(
+			        MAX(DimEmployees[FirstName]) &
+			        " " &
+			        MAX(DimEmployees[LastName]),
+			        DimEmployees[EmployeeKey] = TopEmployeeKey
+			    )
+			
+			RETURN
+			"On-time delivery: " &
+			FORMAT([On-Time Delivery Rate %], "0.0%") &
+			". Top performer: " &
+			TopEmployee &
+			"."
+		lineageTag: 16b18a8a-f6e7-442b-a392-20832ccb3889
+
+		changedProperty = Name
+
+	column OrderID
+		dataType: int64
+		formatString: 0
+		sourceProviderType: bigint
+		lineageTag: 2daaae7f-fa0a-4a90-8190-347e1c52df1c
+		sourceLineageTag: OrderID
+		summarizeBy: count
+		sourceColumn: OrderID
+
+		annotation SummarizationSetBy = Automatic
+
+	column ProductID
+		dataType: int64
+		formatString: 0
+		sourceProviderType: bigint
+		lineageTag: 41367806-7bba-43de-b12a-dbe4038a6ac1
+		sourceLineageTag: ProductID
+		summarizeBy: count
+		sourceColumn: ProductID
+
+		annotation SummarizationSetBy = Automatic
+
+	column CustomerKey
+		dataType: int64
+		formatString: 0
+		sourceProviderType: bigint
+		lineageTag: bac69d27-6c5e-45aa-aee6-d3093522f7cc
+		sourceLineageTag: CustomerKey
+		summarizeBy: none
+		sourceColumn: CustomerKey
+
+		annotation SummarizationSetBy = Automatic
+
+	column EmployeeKey
+		dataType: int64
+		formatString: 0
+		sourceProviderType: bigint
+		lineageTag: 3ac72840-041d-4021-895d-bdb6599f8081
+		sourceLineageTag: EmployeeKey
+		summarizeBy: none
+		sourceColumn: EmployeeKey
+
+		annotation SummarizationSetBy = Automatic
+
+	column ProductKey
+		dataType: int64
+		formatString: 0
+		sourceProviderType: bigint
+		lineageTag: 6739cee4-09be-41f7-9dae-9c429a391139
+		sourceLineageTag: ProductKey
+		summarizeBy: none
+		sourceColumn: ProductKey
+
+		annotation SummarizationSetBy = Automatic
+
+	column ShipperKey
+		dataType: int64
+		formatString: 0
+		sourceProviderType: bigint
+		lineageTag: 2f547ead-264d-4763-84dc-43cb035573e3
+		sourceLineageTag: ShipperKey
+		summarizeBy: none
+		sourceColumn: ShipperKey
+
+		annotation SummarizationSetBy = Automatic
+
+	column Quantity
+		dataType: int64
+		formatString: 0
+		sourceProviderType: bigint
+		lineageTag: 642873ec-4df4-413b-89fb-22715090600c
+		sourceLineageTag: Quantity
+		summarizeBy: sum
+		sourceColumn: Quantity
+
+		annotation SummarizationSetBy = Automatic
+
+	column UnitPrice
+		dataType: double
+		sourceProviderType: float
+		lineageTag: b0402006-6e66-4d57-b7c8-5f3c2259a059
+		sourceLineageTag: UnitPrice
+		summarizeBy: sum
+		sourceColumn: UnitPrice
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column Discount
+		dataType: double
+		sourceProviderType: float
+		lineageTag: aa1ae783-1ec0-41a5-979f-afde54e18fbe
+		sourceLineageTag: Discount
+		summarizeBy: sum
+		sourceColumn: Discount
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column LineTotal
+		dataType: double
+		sourceProviderType: decimal(18, 2)
+		lineageTag: af12e3f7-606f-458e-8b91-d687baff7681
+		sourceLineageTag: LineTotal
+		summarizeBy: sum
+		sourceColumn: LineTotal
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column Freight
+		dataType: double
+		sourceProviderType: float
+		lineageTag: 069174e8-3435-412e-9e1a-37e82264ba2e
+		sourceLineageTag: Freight
+		summarizeBy: sum
+		sourceColumn: Freight
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column ShipCountry
+		dataType: string
+		sourceProviderType: varchar(8000)
+		lineageTag: 81421cdd-428c-4abc-91db-24ec2359ab73
+		sourceLineageTag: ShipCountry
+		summarizeBy: none
+		sourceColumn: ShipCountry
+
+		annotation SummarizationSetBy = Automatic
+
+	column ShipRegion
+		dataType: string
+		sourceProviderType: varchar(8000)
+		lineageTag: e6414153-3051-489c-81c6-f2e56648fbcb
+		sourceLineageTag: ShipRegion
+		summarizeBy: none
+		sourceColumn: ShipRegion
+
+		annotation SummarizationSetBy = Automatic
+
+	column OrderDateKey
+		dataType: int64
+		formatString: 0
+		sourceProviderType: int
+		lineageTag: a206b863-7ec3-4832-91f8-dd22767ea3a5
+		sourceLineageTag: OrderDateKey
+		summarizeBy: none
+		sourceColumn: OrderDateKey
+
+		annotation SummarizationSetBy = Automatic
+
+	column ShippedDateKey
+		dataType: int64
+		formatString: 0
+		sourceProviderType: int
+		lineageTag: 2aeace1f-081f-45d8-becf-dda201a1a839
+		sourceLineageTag: ShippedDateKey
+		summarizeBy: count
+		sourceColumn: ShippedDateKey
+
+		annotation SummarizationSetBy = Automatic
+
+	column RequiredDateKey
+		dataType: int64
+		formatString: 0
+		sourceProviderType: int
+		lineageTag: e97621d8-38f4-4e4a-9a60-66b8b1ed3b71
+		sourceLineageTag: RequiredDateKey
+		summarizeBy: count
+		sourceColumn: RequiredDateKey
+
+		annotation SummarizationSetBy = Automatic
+
+	column OrderDate
+		dataType: dateTime
+		formatString: General Date
+		sourceProviderType: date
+		lineageTag: 0a62d86f-63c4-4c2d-bd78-bd828f1ced52
+		sourceLineageTag: OrderDate
+		summarizeBy: none
+		sourceColumn: OrderDate
+
+		annotation SummarizationSetBy = Automatic
+
+	column ShippedDate
+		dataType: dateTime
+		formatString: General Date
+		sourceProviderType: date
+		lineageTag: 0462190c-fb26-4f48-9d5c-435d4cbd409c
+		sourceLineageTag: ShippedDate
+		summarizeBy: none
+		sourceColumn: ShippedDate
+
+		annotation SummarizationSetBy = Automatic
+
+	column RequiredDate
+		dataType: dateTime
+		formatString: General Date
+		sourceProviderType: date
+		lineageTag: fef593f9-955f-4f6f-bb9e-85a56f21a962
+		sourceLineageTag: RequiredDate
+		summarizeBy: none
+		sourceColumn: RequiredDate
+
+		annotation SummarizationSetBy = Automatic
+
+	column DeliveryDays
+		dataType: int64
+		formatString: 0
+		sourceProviderType: int
+		lineageTag: 71bd9aa8-a0cc-4afe-83e3-13514ef83d12
+		sourceLineageTag: DeliveryDays
+		summarizeBy: sum
+		sourceColumn: DeliveryDays
+
+		annotation SummarizationSetBy = Automatic
+
+	column OnTimeFlag
+		dataType: int64
+		formatString: 0
+		sourceProviderType: int
+		lineageTag: 707b0fa0-2af8-465a-873a-ff7a7e9b3d68
+		sourceLineageTag: OnTimeFlag
+		summarizeBy: sum
+		sourceColumn: OnTimeFlag
+
+		annotation SummarizationSetBy = Automatic
+
+	partition Sales = entity
+		mode: directLake
+		source
+			entityName: Sales
+			schemaName: dbo
+			expressionSource: DatabaseQuery
+
+	annotation PBI_ResultType = Table
+

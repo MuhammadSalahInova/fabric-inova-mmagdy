@@ -1,0 +1,55 @@
+table DimTerritories
+	lineageTag: 9e7bdf8a-3cef-4e70-95a8-483f53ce84ef
+	sourceLineageTag: [dbo].[DimTerritories]
+
+	column TerritoryKey
+		dataType: int64
+		formatString: 0
+		sourceProviderType: bigint
+		lineageTag: 0dd50683-81ba-43b3-a1d7-bc4d82c82d6f
+		sourceLineageTag: TerritoryKey
+		summarizeBy: count
+		sourceColumn: TerritoryKey
+
+		annotation SummarizationSetBy = Automatic
+
+	column RegionID
+		dataType: int64
+		formatString: 0
+		sourceProviderType: bigint
+		lineageTag: 38f51a49-b7aa-4799-8280-583681606a35
+		sourceLineageTag: RegionID
+		summarizeBy: count
+		sourceColumn: RegionID
+
+		annotation SummarizationSetBy = Automatic
+
+	column TerritoryDescription
+		dataType: string
+		sourceProviderType: varchar(8000)
+		lineageTag: 85413f44-1e70-49d5-ab0a-a38ac62bd0f3
+		sourceLineageTag: TerritoryDescription
+		summarizeBy: none
+		sourceColumn: TerritoryDescription
+
+		annotation SummarizationSetBy = Automatic
+
+	column TerritoryID
+		dataType: string
+		sourceProviderType: varchar(8000)
+		lineageTag: 1cba63b4-5a66-4a32-9f2d-817e813484cf
+		sourceLineageTag: TerritoryID
+		summarizeBy: none
+		sourceColumn: TerritoryID
+
+		annotation SummarizationSetBy = Automatic
+
+	partition DimTerritories = entity
+		mode: directLake
+		source
+			entityName: DimTerritories
+			schemaName: dbo
+			expressionSource: DatabaseQuery
+
+	annotation PBI_ResultType = Table
+

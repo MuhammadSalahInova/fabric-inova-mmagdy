@@ -1,0 +1,631 @@
+{
+  "properties": {
+    "activities": [
+      {
+        "type": "ForEach",
+        "typeProperties": {
+          "isSequential": true,
+          "items": {
+            "value": "@pipeline().parameters.TableList",
+            "type": "Expression"
+          },
+          "activities": [
+            {
+              "type": "Copy",
+              "typeProperties": {
+                "source": {
+                  "type": "RestSource",
+                  "requestMethod": "GET",
+                  "paginationRules": {
+                    "AbsoluteUrl": {
+                      "value": "$['@odata.nextLink']",
+                      "type": "Expression"
+                    }
+                  },
+                  "httpRequestTimeout": "00:01:40",
+                  "requestInterval": "00.00:00:00.010",
+                  "datasetSettings": {
+                    "type": "RestResource",
+                    "typeProperties": {
+                      "relativeUrl": {
+                        "value": "@{item()}?$format=json&$top=10000",
+                        "type": "Expression"
+                      }
+                    },
+                    "schema": [],
+                    "externalReferences": {
+                      "connection": "1677e25c-40a3-45a0-8e13-c98d23b12c6c"
+                    },
+                    "annotations": []
+                  }
+                },
+                "sink": {
+                  "type": "JsonSink",
+                  "formatSettings": {
+                    "type": "JsonWriteSettings"
+                  },
+                  "storeSettings": {
+                    "type": "AzureBlobStorageWriteSettings"
+                  },
+                  "datasetSettings": {
+                    "type": "Json",
+                    "typeProperties": {
+                      "location": {
+                        "type": "LakehouseLocation",
+                        "fileName": {
+                          "value": "@concat('bronze_', item())",
+                          "type": "Expression"
+                        }
+                      }
+                    },
+                    "schema": {},
+                    "linkedService": {
+                      "name": "Bronze_LH",
+                      "properties": {
+                        "type": "Lakehouse",
+                        "typeProperties": {
+                          "artifactId": "823b8a5c-1208-854b-44e1-c2e420795e0d",
+                          "workspaceId": "00000000-0000-0000-0000-000000000000",
+                          "rootFolder": "Files"
+                        },
+                        "annotations": []
+                      }
+                    },
+                    "annotations": []
+                  }
+                },
+                "enableStaging": false
+              },
+              "policy": {
+                "timeout": "0.12:00:00",
+                "retry": 2,
+                "retryIntervalInSeconds": 30,
+                "secureInput": false,
+                "secureOutput": false
+              },
+              "name": "Copy_ToBronze",
+              "dependsOn": []
+            },
+            {
+              "type": "AppendVariable",
+              "typeProperties": {
+                "variableName": "var_copy_results",
+                "value": {
+                  "value": "@json(concat('{\"table\":\"', item(), '\",\"status\":\"', activity('Copy_ToBronze').output.executionDetails[0].status, '\",\"rowsCopied\":', string(activity('Copy_ToBronze').output.rowsCopied), ',\"dataRead\":', string(activity('Copy_ToBronze').output.dataRead), ',\"dataWritten\":', string(activity('Copy_ToBronze').output.dataWritten), ',\"copyDuration\":', string(activity('Copy_ToBronze').output.copyDuration), '}'))",
+                  "type": "Expression"
+                }
+              },
+              "name": "Append_Success",
+              "dependsOn": [
+                {
+                  "activity": "Copy_ToBronze",
+                  "dependencyConditions": [
+                    "Succeeded"
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "AppendVariable",
+              "typeProperties": {
+                "variableName": "var_failed_tables",
+                "value": {
+                  "value": "@item()",
+                  "type": "Expression"
+                }
+              },
+              "name": "Append_Failure",
+              "dependsOn": [
+                {
+                  "activity": "Copy_ToBronze",
+                  "dependencyConditions": [
+                    "Failed"
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "WebActivity",
+              "typeProperties": {
+                "method": "GET",
+                "relativeUrl": {
+                  "value": "@concat('/V3/Northwind/Northwind.svc/', item(), '/$count')",
+                  "type": "Expression"
+                },
+                "headers": {}
+              },
+              "externalReferences": {
+                "connection": "4180be84-e79f-463e-bd9c-b873fe526020"
+              },
+              "policy": {
+                "timeout": "0.12:00:00",
+                "retry": 2,
+                "retryIntervalInSeconds": 30,
+                "secureInput": false,
+                "secureOutput": false
+              },
+              "name": "Get_SourceCount",
+              "dependsOn": [
+                {
+                  "activity": "Append_Success",
+                  "dependencyConditions": [
+                    "Succeeded"
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "AppendVariable",
+              "typeProperties": {
+                "variableName": "var_source_counts",
+                "value": {
+                  "value": "@json(concat('{\"table\":\"', item(), '\",\"count\":', string(int(activity('Get_SourceCount').output.Response)), '}'))",
+                  "type": "Expression"
+                }
+              },
+              "name": "Append_SourceCount",
+              "dependsOn": [
+                {
+                  "activity": "Get_SourceCount",
+                  "dependencyConditions": [
+                    "Succeeded"
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        "name": "ForEach1",
+        "dependsOn": [
+          {
+            "activity": "Set_InitCopyResults",
+            "dependencyConditions": [
+              "Succeeded"
+            ]
+          }
+        ]
+      },
+      {
+        "type": "SetVariable",
+        "typeProperties": {
+          "variableName": "var_success_tables",
+          "value": {
+            "value": "@json(activity('NB_Bronze_Validation').output.result.exitValue).passed_tables",
+            "type": "Expression"
+          }
+        },
+        "policy": {
+          "secureInput": false,
+          "secureOutput": false
+        },
+        "name": "Set_SuccessTables",
+        "dependsOn": [
+          {
+            "activity": "NB_Bronze_Validation",
+            "dependencyConditions": [
+              "Succeeded"
+            ]
+          }
+        ]
+      },
+      {
+        "type": "SetVariable",
+        "typeProperties": {
+          "variableName": "var_failed_tables",
+          "value": {
+            "value": "@json(activity('NB_Bronze_Validation').output.result.exitValue).failed_tables",
+            "type": "Expression"
+          }
+        },
+        "policy": {
+          "secureInput": false,
+          "secureOutput": false
+        },
+        "name": "Failed_Tables",
+        "dependsOn": [
+          {
+            "activity": "Set_SuccessTables",
+            "dependencyConditions": [
+              "Succeeded"
+            ]
+          }
+        ]
+      },
+      {
+        "type": "TridentNotebook",
+        "typeProperties": {
+          "notebookId": "73c22e18-b977-bb07-4176-e121997bd65c",
+          "workspaceId": "00000000-0000-0000-0000-000000000000",
+          "parameters": {
+            "run_id": {
+              "value": {
+                "value": "@pipeline().RunId",
+                "type": "Expression"
+              },
+              "type": "string"
+            },
+            "base_path": {
+              "value": {
+                "value": "@pipeline().parameters.bronze_base_path",
+                "type": "Expression"
+              },
+              "type": "string"
+            },
+            "copy_results_json": {
+              "value": {
+                "value": "@concat('[', join(variables('var_copy_results'), ','), ']')",
+                "type": "Expression"
+              },
+              "type": "string"
+            },
+            "success_tables_json": {
+              "value": {
+                "value": "@string(variables('var_success_tables'))",
+                "type": "Expression"
+              },
+              "type": "string"
+            },
+            "failed_tables_json": {
+              "value": {
+                "value": "@string(variables('var_failed_tables'))",
+                "type": "Expression"
+              },
+              "type": "string"
+            }
+          }
+        },
+        "policy": {
+          "timeout": "0.12:00:00",
+          "retry": 0,
+          "retryIntervalInSeconds": 30,
+          "secureInput": false,
+          "secureOutput": false
+        },
+        "name": "NB_Log_CopyStatus",
+        "dependsOn": [
+          {
+            "activity": "Failed_Tables",
+            "dependencyConditions": [
+              "Succeeded"
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Office365Email",
+        "typeProperties": {
+          "body": "<p>Run: @{pipeline().RunId}</p>\n<p>Succeeded: @{join(variables('var_success_tables'), ', ')}</p>\n<p>Failed: @{join(variables('var_failed_tables'), ', ')}</p>",
+          "to": "mohamedmyouness612@gmail.com",
+          "subject": {
+            "value": "@concat('Bronze Ingestion Summary - ', if(greater(length(variables('var_failed_tables')), 0), 'ISSUES FOUND', 'All Passed'))",
+            "type": "Expression"
+          }
+        },
+        "externalReferences": {
+          "connection": "45246b29-4bcb-4270-94e6-c66a7c07d252"
+        },
+        "policy": {
+          "timeout": "0.12:00:00",
+          "retry": 0,
+          "retryIntervalInSeconds": 30,
+          "secureInput": false,
+          "secureOutput": false
+        },
+        "name": "Send_SummaryEmail",
+        "dependsOn": [
+          {
+            "activity": "NB_Log_CopyStatus",
+            "dependencyConditions": [
+              "Succeeded"
+            ]
+          }
+        ]
+      },
+      {
+        "type": "TridentNotebook",
+        "typeProperties": {
+          "notebookId": "2137bce6-9d9a-b1c2-4b42-5b6f2a2ee6da",
+          "workspaceId": "00000000-0000-0000-0000-000000000000",
+          "parameters": {
+            "bronze_base_path": {
+              "value": {
+                "value": "@pipeline().parameters.bronze_base_path",
+                "type": "Expression"
+              },
+              "type": "string"
+            },
+            "run_id": {
+              "value": {
+                "value": "@pipeline().RunId",
+                "type": "Expression"
+              },
+              "type": "string"
+            },
+            "core_tables_param": {
+              "value": {
+                "value": "@join(pipeline().parameters.TableList, ',')",
+                "type": "Expression"
+              },
+              "type": "string"
+            }
+          }
+        },
+        "policy": {
+          "timeout": "0.12:00:00",
+          "retry": 0,
+          "retryIntervalInSeconds": 30,
+          "secureInput": false,
+          "secureOutput": false
+        },
+        "name": "NB_Silver_Transform",
+        "dependsOn": [
+          {
+            "activity": "Send_SummaryEmail",
+            "dependencyConditions": [
+              "Succeeded"
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Office365Email",
+        "typeProperties": {
+          "body": "@activity('NB_Silver_Transform').output.result.exitValue",
+          "to": "mohamedmyouness612@gmail.com",
+          "subject": "✅ Silver Transform Succeeded"
+        },
+        "externalReferences": {
+          "connection": "45246b29-4bcb-4270-94e6-c66a7c07d252"
+        },
+        "policy": {
+          "timeout": "0.12:00:00",
+          "retry": 0,
+          "retryIntervalInSeconds": 30,
+          "secureInput": false,
+          "secureOutput": false
+        },
+        "name": "Email_Silver_Success",
+        "dependsOn": [
+          {
+            "activity": "NB_Silver_Transform",
+            "dependencyConditions": [
+              "Succeeded"
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Office365Email",
+        "typeProperties": {
+          "body": "@activity('NB_Silver_Transform').output.result.exitValue",
+          "to": "mohamedmyouness612@gmail.com",
+          "subject": "❌ Silver Transform Failed"
+        },
+        "externalReferences": {
+          "connection": "45246b29-4bcb-4270-94e6-c66a7c07d252"
+        },
+        "policy": {
+          "timeout": "0.12:00:00",
+          "retry": 0,
+          "retryIntervalInSeconds": 30,
+          "secureInput": false,
+          "secureOutput": false
+        },
+        "name": "Email_Silver_Failure",
+        "dependsOn": [
+          {
+            "activity": "NB_Silver_Transform",
+            "dependencyConditions": [
+              "Failed"
+            ]
+          }
+        ]
+      },
+      {
+        "type": "TridentNotebook",
+        "typeProperties": {
+          "notebookId": "135aff07-65ce-9e04-44c7-c4ee5eaa2abe",
+          "workspaceId": "00000000-0000-0000-0000-000000000000",
+          "parameters": {
+            "excel_file_path": {
+              "value": {
+                "value": "@concat(pipeline().parameters.bronze_base_path, '/', pipeline().parameters.excel_file_name)",
+                "type": "Expression"
+              },
+              "type": "string"
+            },
+            "bronze_base_path": {
+              "value": {
+                "value": "@pipeline().parameters.bronze_base_path",
+                "type": "Expression"
+              },
+              "type": "string"
+            },
+            "run_id": {
+              "value": {
+                "value": "@pipeline().RunId",
+                "type": "Expression"
+              },
+              "type": "string"
+            }
+          }
+        },
+        "policy": {
+          "timeout": "0.12:00:00",
+          "retry": 0,
+          "retryIntervalInSeconds": 30,
+          "secureInput": false,
+          "secureOutput": false
+        },
+        "name": "NB_Excel_Bronze_Load",
+        "dependsOn": [
+          {
+            "activity": "ForEach1",
+            "dependencyConditions": [
+              "Succeeded"
+            ]
+          }
+        ]
+      },
+      {
+        "type": "SetVariable",
+        "typeProperties": {
+          "variableName": "var_excel_output",
+          "value": {
+            "value": "@string(activity('NB_Excel_Bronze_Load').output.result.exitValue)",
+            "type": "Expression"
+          }
+        },
+        "policy": {
+          "secureInput": false,
+          "secureOutput": false
+        },
+        "name": "Set_ExcelRowCounts",
+        "dependsOn": [
+          {
+            "activity": "NB_Excel_Bronze_Load",
+            "dependencyConditions": [
+              "Succeeded"
+            ]
+          }
+        ]
+      },
+      {
+        "type": "TridentNotebook",
+        "typeProperties": {
+          "notebookId": "bf8931f8-ac2d-8486-45f8-43f0dab1c5dd",
+          "workspaceId": "00000000-0000-0000-0000-000000000000",
+          "parameters": {
+            "base_path": {
+              "value": {
+                "value": "@pipeline().parameters.bronze_base_path",
+                "type": "Expression"
+              },
+              "type": "string"
+            },
+            "core_tables_param": {
+              "value": {
+                "value": "@join(pipeline().parameters.TableList, ',')",
+                "type": "Expression"
+              },
+              "type": "string"
+            },
+            "source_counts_json": {
+              "value": {
+                "value": "@concat('[', join(variables('var_source_counts'), ','), ']')",
+                "type": "Expression"
+              },
+              "type": "string"
+            },
+            "run_id": {
+              "value": {
+                "value": "@pipeline().RunId",
+                "type": "Expression"
+              },
+              "type": "string"
+            }
+          }
+        },
+        "policy": {
+          "timeout": "0.12:00:00",
+          "retry": 0,
+          "retryIntervalInSeconds": 30,
+          "secureInput": false,
+          "secureOutput": false
+        },
+        "name": "NB_Bronze_Validation",
+        "dependsOn": [
+          {
+            "activity": "Set_ExcelRowCounts",
+            "dependencyConditions": [
+              "Succeeded"
+            ]
+          }
+        ]
+      },
+      {
+        "type": "SetVariable",
+        "typeProperties": {
+          "variableName": "var_source_counts",
+          "value": [
+            "   @json('[]')"
+          ]
+        },
+        "policy": {
+          "secureInput": false,
+          "secureOutput": false
+        },
+        "name": "Set_InitSourceCounts",
+        "dependsOn": []
+      },
+      {
+        "type": "SetVariable",
+        "typeProperties": {
+          "variableName": "var_copy_results",
+          "value": [
+            "@json('[]')"
+          ]
+        },
+        "policy": {
+          "secureInput": false,
+          "secureOutput": false
+        },
+        "name": "Set_InitCopyResults",
+        "dependsOn": [
+          {
+            "activity": "Set_InitSourceCounts",
+            "dependencyConditions": [
+              "Succeeded"
+            ]
+          }
+        ]
+      }
+    ],
+    "parameters": {
+      "TableList": {
+        "type": "array",
+        "defaultValue": [
+          "Categories",
+          "Customers",
+          "Employees",
+          "Order_Details",
+          "Orders",
+          "Products",
+          "Regions",
+          "Shippers",
+          "Suppliers",
+          "Territories"
+        ]
+      },
+      "api_base_url": {
+        "type": "string",
+        "defaultValue": "https://services.odata.org/V3/Northwind/Northwind.svc"
+      },
+      "bronze_base_path": {
+        "type": "string",
+        "defaultValue": "abfss://b37d6e7d-3c40-4ab5-9c25-3ef4b055be87@onelake.dfs.fabric.microsoft.com/20795e0d-c2e4-44e1-854b-1208823b8a5c/Files/"
+      },
+      "excel_file_name": {
+        "type": "string",
+        "defaultValue": "FakeStore_Orders_OrderDetails_Customers_Products_Linked.xlsx"
+      }
+    },
+    "variables": {
+      "var_success_tables": {
+        "type": "Array"
+      },
+      "var_failed_tables": {
+        "type": "Array"
+      },
+      "var_source_counts": {
+        "type": "Array"
+      },
+      "var_copy_results": {
+        "type": "Array"
+      },
+      "var_excel_output": {
+        "type": "String"
+      }
+    }
+  }
+}

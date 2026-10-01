@@ -1,0 +1,11 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/gitIntegration/platformProperties/2.0.0/schema.json",
+  "metadata": {
+    "type": "Notebook",
+    "displayName": "NB_Excel_Merge"
+  },
+  "config": {
+    "version": "2.0",
+    "logicalId": "363a79e9-3395-8582-424f-cd168cb96aaa"
+  }
+}

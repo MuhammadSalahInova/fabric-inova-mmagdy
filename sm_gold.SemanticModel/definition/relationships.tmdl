@@ -1,0 +1,38 @@
+relationship cf70c3e8-8a7b-0f80-f863-c4e0456fa41e
+	fromColumn: Sales.CustomerKey
+	toColumn: DimCustomers.CustomerKey
+
+relationship f23eefdf-854a-49cd-992f-5615326e1b6d
+	fromColumn: Sales.ShipperKey
+	toColumn: DimShippers.ShipperKey
+
+relationship 748b7b72-8c29-cf42-1f33-31d7a5df4ac4
+	fromColumn: Sales.EmployeeKey
+	toColumn: DimEmployees.EmployeeKey
+
+relationship 9d847195-1cc3-278f-f462-b9d1ec90525b
+	fromColumn: Sales.ProductKey
+	toColumn: DimProducts.ProductKey
+
+relationship b3588f41-73ff-f0eb-57c0-fb19bff85aad
+	fromColumn: DimProducts.CategoryKey
+	toColumn: DimCategories.CategoryKey
+
+relationship 12792e59-e65f-79d3-58a4-beac82a91f0d
+	fromColumn: DimProducts.SupplierKey
+	toColumn: DimSuppliers.SupplierKey
+
+relationship bab1ffa8-94da-f557-5fad-253f60998b9c
+	fromColumn: Sales.OrderDateKey
+	toColumn: DimDate.DateKey
+
+relationship a31c9e03-c1b1-b87f-3cff-acb78df1fab3
+	isActive: false
+	fromColumn: Sales.ShippedDateKey
+	toColumn: DimDate.DateKey
+
+relationship 60c4ab25-102d-5324-4216-1f8039b2970e
+	isActive: false
+	fromColumn: Sales.RequiredDateKey
+	toColumn: DimDate.DateKey
+

@@ -1,0 +1,27 @@
+model Model
+	culture: en-US
+	collation: Latin1_General_100_BIN2_UTF8
+	defaultPowerBIDataSourceVersion: powerBI_V3
+	sourceQueryCulture: en-US
+	dataAccessOptions
+		legacyRedirects
+		returnErrorValuesAsNull
+
+annotation __PBI_TimeIntelligenceEnabled = 0
+
+annotation PBI_QueryOrder = ["DatabaseQuery"]
+
+annotation PBI_ProTooling = ["WebModelingEdit","DaxQueryView_Desktop"]
+
+ref table DimCustomers
+ref table DimEmployees
+ref table DimCategories
+ref table DimSuppliers
+ref table DimShippers
+ref table DimRegions
+ref table DimTerritories
+ref table DimProducts
+ref table DimDate
+ref table Sales
+ref table _Measures
+

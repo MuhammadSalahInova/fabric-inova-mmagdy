@@ -1,0 +1,38 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.12.0/schema.json",
+  "name": "5577735fd8bd0528dae8",
+  "position": {
+    "x": 1539.3391304347824,
+    "y": 126.88695652173912,
+    "z": 12000,
+    "height": 285.495652173913,
+    "width": 380.66086956521735,
+    "tabOrder": 11000
+  },
+  "visual": {
+    "visualType": "htmlContent443BE3AD55E043BF878BED274D3A6855",
+    "query": {
+      "queryState": {
+        "content": {
+          "projections": [
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "_Measures"
+                    }
+                  },
+                  "Property": "Avg Order Value Card HTML"
+                }
+              },
+              "queryRef": "_Measures.Avg Order Value Card HTML",
+              "nativeQueryRef": "Avg Order Value Card HTML"
+            }
+          ]
+        }
+      }
+    },
+    "drillFilterOtherVisuals": true
+  }
+}
